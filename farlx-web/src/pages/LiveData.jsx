@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Database } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost:3000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API = `${API_BASE.replace(/\/$/, "")}/api`;
 
 export default function LiveData() {
   const [listings, setListings] = useState([]);
@@ -32,7 +33,7 @@ export default function LiveData() {
           setError(d1?.error || d2?.error || d3?.error || "Error loading database records.");
         }
       } catch (e) {
-        setError("Could not connect to backend. Make sure Node server is running on port 3000.");
+        setError("Could not connect to backend. Make sure the backend server is running.");
       }
     }
 
