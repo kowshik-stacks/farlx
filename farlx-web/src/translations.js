@@ -28,7 +28,7 @@ export const translations = {
     language: "Language",
 
     // Hero & Home
-    heroBadge: "Smart India Hackathon 2024 Finalist Prototype",
+    heroBadge: "National AgriTech Escrow Platform",
     heroTitle: "Direct Farm-to-Buyer Trade with Zero Middlemen",
     heroSubtitle: "Empowering rural farmers with AI-driven crop grading, APMC Mandi price benchmarks, Smart Escrow, and instant UPI payouts.",
     exploreMarket: "Explore Marketplace",
@@ -169,7 +169,7 @@ export const translations = {
     darkMode: "रात का मोड (Dark)",
     language: "भाषा (Language)",
 
-    heroBadge: "स्मार्ट इंडिया हैकाथॉन 2024 प्रोटोटाइप",
+    heroBadge: "राष्ट्रीय कृषि एस्क्रो प्लेटफॉर्म",
     heroTitle: "सीधे खेत से खरीदार तक व्यापार - बिना किसी बिचौलिए के",
     heroSubtitle: "ग्रामीण किसानों के लिए AI फसल गुणवत्ता जांच, APMC मंडी भाव तुलना, सुरक्षित एस्क्रो और तुरंत UPI भुगतान।",
     exploreMarket: "मंडी देखें",
@@ -433,7 +433,7 @@ export const translations = {
     darkMode: "డార్క్ మోడ్",
     language: "భాష (Language)",
 
-    heroBadge: "స్మార్ట్ ఇండియా హ్యాకథాన్ 2024 ప్రోటోటైప్",
+    heroBadge: "జాతీయ వ్యవసాయ ఎస్క్రో ప్లాట్‌ఫారమ్",
     heroTitle: "దళారులు లేకుండా నేరుగా రైతు నుండి కొనుగోలు",
     heroSubtitle: "గ్రామీణ రైతులకు AI పంట నాణ్యత పరీక్ష, మండి ధరల పోలిక, సురక్షిత ఎస్క్రో మరియు తక్షణ UPI చెల్లింపులు.",
     exploreMarket: "మార్కెట్ చూడండి",
@@ -565,7 +565,7 @@ export const translations = {
     darkMode: "रात्र मोड (Dark)",
     language: "भाषा (Language)",
 
-    heroBadge: "स्मार्ट इंडिया हॅकाथॉन 2024 प्रोटोटाइप",
+    heroBadge: "राष्ट्रीय कृषी एस्क्रो प्लॅटफॉर्म",
     heroTitle: "शेतकऱ्यांकडून थेट खरेदी - दलालांशिवाय",
     heroSubtitle: "AI पीक प्रतवारी, APMC बाजारभाव तुलना, सुरक्षित एस्क्रो आणि झटपट UPI पेमेंट.",
     exploreMarket: "बाजारपेठ पहा",

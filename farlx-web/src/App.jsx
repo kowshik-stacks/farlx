@@ -158,17 +158,26 @@ function normalizeListing(raw, idx = 0) {
 
 // ----------------- DATA -----------------
 
-const navItems = [
-  { label: "Home", icon: Home },
-  { label: "My Farm", icon: Sprout },
-  { label: "Market", icon: TrendingUp },
-  { label: "Buy & Sell", icon: ShoppingBag },
-  { label: "Weather", icon: CloudSun },
-  { label: "AI Assistant", icon: Bot, badge: "NEW" },
-  { label: "Community", icon: Users },
-  { label: "Reports", icon: BarChart3 },
-  { label: "Settings", icon: Settings }
+const navItemsConfig = [
+  { id: "Home", key: "navHome", defaultLabel: "Home", icon: Home },
+  { id: "My Farm", key: "navMyFarm", defaultLabel: "My Farm", icon: Sprout },
+  { id: "Market", key: "navMarket", defaultLabel: "Market", icon: TrendingUp },
+  { id: "Buy & Sell", key: "navBuySell", defaultLabel: "Buy & Sell", icon: ShoppingBag },
+  { id: "Weather", key: "navWeather", defaultLabel: "Weather", icon: CloudSun },
+  { id: "AI Assistant", key: "navAiAssistant", defaultLabel: "AI Assistant", icon: Bot, badge: "NEW" },
+  { id: "Logistics", key: "navLogistics", defaultLabel: "Logistics", icon: Truck },
+  { id: "Community", key: "navCommunity", defaultLabel: "Community", icon: Users },
+  { id: "Reports", key: "navReports", defaultLabel: "Reports", icon: BarChart3 },
+  { id: "Settings", key: "navSettings", defaultLabel: "Settings", icon: Settings }
 ];
+
+function getNavItems(lang) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
+  return navItemsConfig.map(n => ({
+    ...n,
+    label: t(n.key, n.defaultLabel)
+  }));
+}
 
 const listings = [
   {
@@ -498,7 +507,7 @@ const itemReveal = {
 
 // ----------------- SIDEBAR -----------------
 
-function Sidebar({ active, setActive, mobileOpen, setMobileOpen }) {
+function Sidebar({ active, setActive, mobileOpen, setMobileOpen, lang = "en" }) {
   const navigate = useNavigate();
 
   return (
@@ -555,23 +564,23 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen }) {
           </div>
 
           <div className="space-y-2">
-            {navItems.map((item) => {
-              const isActive = active === item.label;
+            {getNavItems(lang).map((item) => {
+              const isActive = active === item.id;
               const Icon = item.icon;
 
               return (
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  key={item.label}
+                  key={item.id}
                   onClick={() => {
-                    if (item.label === "Home") {
+                    if (item.id === "Home") {
                       setActive("Home");
                       navigate("/");
-                    } else if (item.label === "Market") {
+                    } else if (item.id === "Market") {
                       setActive("Market");
                       navigate("/market");
                     } else {
-                      setActive(item.label);
+                      setActive(item.id);
                       navigate("/");
                     }
                     setMobileOpen(false);
@@ -592,12 +601,12 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen }) {
                     <Icon className="h-4 w-4" />
                   </span>
 
-                  <span className="flex-1 text-left font-semibold">
+                  <span className="truncate font-semibold tracking-wide">
                     {item.label}
                   </span>
 
                   {item.badge && (
-                    <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[10px] font-black text-amber-950">
+                    <span className="ml-auto rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-black text-amber-300">
                       {item.badge}
                     </span>
                   )}
@@ -912,9 +921,75 @@ function SectionHeading({ title, description, action, icon: Icon }) {
   );
 }
 
+
+// ----------------- DYNAMIC 5-STEP ESCROW WORKFLOW PIPELINE -----------------
+
+function WorkflowPipeline({ isDark = false, lang = "en" }) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
+
+  const steps = [
+    { num: 1, title: t("pipeStep1Title", "1. Farmer Lists Produce"), desc: t("pipeStep1Desc", "Farmer lists crop via Telegram @FarlX_bot"), icon: "🌾", badge: "Live" },
+    { num: 2, title: t("pipeStep2Title", "2. Buyer Places Bid"), desc: t("pipeStep2Desc", "Wholesale buyer submits offer on Web"), icon: "💼", badge: "Instant" },
+    { num: 3, title: t("pipeStep3Title", "3. Farmer Accepts"), desc: t("pipeStep3Desc", "Farmer accepts offer in local language on Bot"), icon: "📱", badge: "Synced" },
+    { num: 4, title: t("pipeStep4Title", "4. Escrow Locks Funds"), desc: t("pipeStep4Desc", "Funds locked safely; dispatch tracking starts"), icon: "🔒", badge: "Protected" },
+    { num: 5, title: t("pipeStep5Title", "5. Delivery & UPI Payout"), desc: t("pipeStep5Desc", "Buyer confirms goods -> Instant UPI release"), icon: "💸", badge: "Instant" }
+  ];
+
+  return (
+    <div className={"rounded-2xl border p-5 transition-all duration-200 " + (isDark ? "bg-[#111C32] border-slate-800 text-slate-100 shadow-xl" : "bg-white border-slate-200 shadow-sm text-slate-900")}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-500 font-black text-xs">
+            <Zap className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className={"text-sm font-black " + (isDark ? "text-white" : "text-slate-900")}>
+              {t("pipeHeader", "Simultaneous Web & Telegram Escrow Workflow")}
+            </h3>
+            <p className={"text-xs " + (isDark ? "text-slate-400" : "text-slate-500")}>
+              {t("pipeSubheader", "How buyer bids on Web and farmer approvals on Telegram synchronize in real time")}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-500 border border-emerald-500/20">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            Live Sync: Web ⇄ @FarlX_bot
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+        {steps.map((s, idx) => (
+          <div
+            key={s.num}
+            className={"relative rounded-xl border p-3.5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 " + 
+              (idx === 1 
+                ? (isDark ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-200 ring-2 ring-cyan-500/30" : "border-cyan-300 bg-cyan-50/80 text-cyan-950 ring-2 ring-cyan-400/30")
+                : (isDark ? "border-slate-800 bg-[#0B132B]/80 text-slate-300" : "border-slate-200/80 bg-slate-50/80 text-slate-700"))}
+          >
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xl">{s.icon}</span>
+                <span className={"text-[10px] font-black uppercase px-2 py-0.5 rounded-full " + 
+                  (idx === 1 ? "bg-cyan-500 text-white" : (isDark ? "bg-slate-800 text-slate-300" : "bg-slate-200 text-slate-700"))}>
+                  {s.badge}
+                </span>
+              </div>
+              <h4 className={"text-xs font-black " + (isDark ? "text-white" : "text-slate-900")}>{s.title}</h4>
+              <p className={"text-[11px] mt-1 leading-snug " + (isDark ? "text-slate-400" : "text-slate-500")}>{s.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ----------------- HERO -----------------
 
-function Hero({ onExplore }) {
+function Hero({ onExplore, lang = "en", isDark = false }) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   return (
     <motion.section
       initial={{ opacity: 0, y: 16 }}
@@ -1049,10 +1124,11 @@ function Hero({ onExplore }) {
 
 // ----------------- STATS GRID -----------------
 
-function StatsGrid({ liveStats, isDark = false }) {
+function StatsGrid({ liveStats, isDark = false, lang = "en" }) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   const stats = [
     {
-      label: "Total Trade Volume",
+      label: t("statsVolume", "Total Trade Volume"),
       value: liveStats?.totalVolume ? `₹${liveStats.totalVolume.toLocaleString('en-IN')}` : "₹2,45,000",
       change: "+15.2%",
       icon: DollarSign,
@@ -1063,7 +1139,7 @@ function StatsGrid({ liveStats, isDark = false }) {
       bars: [35, 48, 42, 65, 56, 82]
     },
     {
-      label: "Active Escrow Orders",
+      label: t("statsTotalBids", "Active Escrow Orders"),
       value: liveStats?.totalTransactions !== undefined ? String(liveStats.totalTransactions) : "18",
       change: "+4",
       icon: Package,
@@ -1074,7 +1150,7 @@ function StatsGrid({ liveStats, isDark = false }) {
       bars: [20, 42, 35, 68, 56, 74]
     },
     {
-      label: "Registered Farmers",
+      label: t("statsFarmers", "Registered Farmers"),
       value: liveStats?.totalFarmers ? String(liveStats.totalFarmers) : "42",
       change: "+12",
       icon: Users,
@@ -1085,7 +1161,7 @@ function StatsGrid({ liveStats, isDark = false }) {
       bars: [32, 45, 51, 47, 68, 86]
     },
     {
-      label: "Live Marketplace Listings",
+      label: t("statsActiveListings", "Live Marketplace Listings"),
       value: liveStats?.totalListings ? String(liveStats.totalListings) : "28",
       change: "Real-time",
       icon: ShieldCheck,
@@ -1163,12 +1239,13 @@ function StatsGrid({ liveStats, isDark = false }) {
 
 // ----------------- LISTING CARD -----------------
 
-function ListingCard({ listing, onView, compact = false }) {
+function ListingCard({ listing, onView, compact = false, isDark = false, lang = "en" }) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   return (
     <motion.article
       whileHover={{ y: -8 }}
       transition={{ type: "spring", stiffness: 280, damping: 22 }}
-      className={`group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-2xl hover:shadow-slate-200/90 ${
+      className={`group flex flex-col overflow-hidden rounded-2xl border shadow-sm transition-all hover:shadow-2xl ${isDark ? "bg-[#111C32] border-slate-800 text-slate-100 hover:border-emerald-500/50" : "bg-white border-slate-200 text-slate-900 hover:border-emerald-300 hover:shadow-slate-200/90"} ${
         compact ? "min-h-[300px]" : "min-h-[328px]"
       }`}
     >
@@ -1214,7 +1291,7 @@ function ListingCard({ listing, onView, compact = false }) {
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold text-slate-500">
+          <p className={"text-xs font-semibold " + (isDark ? "text-slate-400" : "text-slate-500")}>
             {listing.farmer}
           </p>
 
@@ -1268,7 +1345,8 @@ function ListingCard({ listing, onView, compact = false }) {
 
 // ----------------- FEATURED LISTINGS -----------------
 
-function FeaturedListings({ currentListings, onView, onExplore }) {
+function FeaturedListings({ currentListings, onView, onExplore, isDark = false, lang = "en" }) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   const displayListings = (currentListings && currentListings.length > 0) ? currentListings : listings;
 
   return (
@@ -1637,7 +1715,7 @@ function BuyerPulse({ onOpenListing }) {
           </div>
 
           <button
-            onClick={() => onOpenListing(listings[3])}
+            onClick={() => onOpenListing((listings && listings.length > 3) ? listings[3] : (listings[0] || null))}
             className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-black text-indigo-700 transition-all hover:-translate-y-0.5 hover:bg-indigo-50"
           >
             View matching lots
@@ -1768,7 +1846,8 @@ function LivePrices() {
 
 // ----------------- MARKET PAGE -----------------
 
-function MarketPage({ currentListings, searchQuery, onView }) {
+function MarketPage({ currentListings, searchQuery, onView, isDark = false, lang = "en" }) {
+  const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("Best Match");
 
@@ -2055,8 +2134,10 @@ function ListingModal({ listing, onClose, onBidSuccess }) {
                   <ol className="mt-2 list-decimal list-inside space-y-1.5 text-cyan-900 leading-relaxed font-medium">
                     <li>You submit a bid here with your offer price & quantity.</li>
                     <li>Farmer receives instant Telegram notification on <strong>@FarlX_bot</strong> with [Accept] button.</li>
-                    <li>Farmer accepts $ightarrow$ Order created in <strong>Escrow</strong>.</li>
-                    <li>Upon delivery, you mark <strong>Product Received</strong> $ightarrow$ Payment instantly released to farmer UPI/QR!</li>
+                    <li>Farmer accepts $
+ightarrow$ Order created in <strong>Escrow</strong>.</li>
+                    <li>Upon delivery, you mark <strong>Product Received</strong> $
+ightarrow$ Payment instantly released to farmer UPI/QR!</li>
                   </ol>
                 </div>
               </div>
@@ -3023,7 +3104,6 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Live state from Backend
   const [liveListings, setLiveListings] = useState([]);
   const [liveStats, setLiveStats] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -3060,7 +3140,6 @@ export default function App() {
 
   useEffect(() => {
     fetchLiveData();
-    // Poll every 4 seconds so Telegram updates show live without reload
     const timer = setInterval(fetchLiveData, 4000);
     return () => clearInterval(timer);
   }, []);
@@ -3107,37 +3186,39 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Listings to display (live from DB if available, else rich mockup fallback)
   const currentListings = liveListings.length > 0 ? liveListings : listings;
 
   const renderHome = () => {
     return (
       <div className="space-y-10">
-        <Hero onExplore={goToMarket} />
-        <StatsGrid liveStats={liveStats} isDark={isDark} />
+        <WorkflowPipeline isDark={isDark} lang={lang} />
+        <Hero onExplore={goToMarket} lang={lang} isDark={isDark} />
+        <StatsGrid liveStats={liveStats} isDark={isDark} lang={lang} />
         <FeaturedListings
           currentListings={currentListings}
           onView={openListing}
           onExplore={goToMarket}
+          isDark={isDark}
+          lang={lang}
         />
-        <Insights />
-        <BuyerPulse onOpenListing={openListing} />
-        <LivePrices />
+        <Insights isDark={isDark} lang={lang} />
+        <BuyerPulse onOpenListing={openListing} isDark={isDark} lang={lang} />
+        <LivePrices isDark={isDark} lang={lang} />
       </div>
     );
   };
 
   const renderPage = () => {
     if (activeNav === "Home") return renderHome();
-    if (activeNav === "Market") return <MarketPage currentListings={currentListings} searchQuery={searchQuery} onView={openListing} />;
-    if (activeNav === "Buy & Sell") return <OrdersEscrowPage transactions={transactions} onRefresh={fetchLiveData} onOpenListing={openListing} />;
-    if (activeNav === "AI Assistant") return <AiInspectorPage isDark={isDark} />;
-    if (activeNav === "Logistics") return <LogisticsPage isDark={isDark} />;
-    if (activeNav === "Weather") return <WeatherPage isDark={isDark} />;
-    if (activeNav === "My Farm") return <MyFarmPage isDark={isDark} />;
-    if (activeNav === "Community") return <CommunityPage isDark={isDark} />;
-    if (activeNav === "Reports") return <ReportsPage isDark={isDark} />;
-    return <MarketPage currentListings={currentListings} searchQuery={searchQuery} onView={openListing} />;
+    if (activeNav === "Market") return <MarketPage currentListings={currentListings} searchQuery={searchQuery} onView={openListing} isDark={isDark} lang={lang} />;
+    if (activeNav === "Buy & Sell") return <OrdersEscrowPage transactions={transactions} onRefresh={fetchLiveData} onOpenListing={openListing} isDark={isDark} lang={lang} />;
+    if (activeNav === "AI Assistant") return <AiInspectorPage isDark={isDark} lang={lang} />;
+    if (activeNav === "Logistics") return <LogisticsPage isDark={isDark} lang={lang} />;
+    if (activeNav === "Weather") return <WeatherPage isDark={isDark} lang={lang} />;
+    if (activeNav === "My Farm") return <MyFarmPage isDark={isDark} lang={lang} />;
+    if (activeNav === "Community") return <CommunityPage isDark={isDark} lang={lang} />;
+    if (activeNav === "Reports") return <ReportsPage isDark={isDark} lang={lang} />;
+    return <MarketPage currentListings={currentListings} searchQuery={searchQuery} onView={openListing} isDark={isDark} lang={lang} />;
   };
 
   return (
@@ -3151,6 +3232,7 @@ export default function App() {
               setActive={setActiveNav}
               mobileOpen={mobileOpen}
               setMobileOpen={setMobileOpen}
+              lang={lang}
             />
 
             <div className="min-w-0 flex-1">
@@ -3183,6 +3265,8 @@ export default function App() {
                   onBidSuccess={() => {
                     fetchLiveData();
                   }}
+                  isDark={isDark}
+                  lang={lang}
                 />
               )}
             </AnimatePresence>
@@ -3199,6 +3283,7 @@ export default function App() {
               setActive={setActiveNav}
               mobileOpen={mobileOpen}
               setMobileOpen={setMobileOpen}
+              lang={lang}
             />
             <div className="min-w-0 flex-1">
               <TopBar
@@ -3220,6 +3305,8 @@ export default function App() {
                     currentListings={currentListings}
                     searchQuery={searchQuery}
                     onView={openListing}
+                    isDark={isDark}
+                    lang={lang}
                   />
                 </div>
               </main>
@@ -3233,6 +3320,8 @@ export default function App() {
                   onBidSuccess={() => {
                     fetchLiveData();
                   }}
+                  isDark={isDark}
+                  lang={lang}
                 />
               )}
             </AnimatePresence>
