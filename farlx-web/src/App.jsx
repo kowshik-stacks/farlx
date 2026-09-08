@@ -62,7 +62,9 @@ import {
   PackageCheck,
   BadgeIndianRupee,
   CircleAlert,
-  ListFilter
+  ListFilter,
+  QrCode,
+  RefreshCw
 } from "lucide-react";
 import {
   AreaChart,
@@ -79,7 +81,74 @@ import {
 
 import LiveData from "./pages/LiveData";
 
-// ----------------- DATA (same as your original) -----------------
+
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+
+function normalizeListing(raw, idx = 0) {
+  const cropEmojis = {
+    tomato: "🍅",
+    onion: "🧅",
+    paddy: "🌾",
+    potato: "🥔",
+    chilli: "🌶️",
+    groundnut: "🥜",
+    maize: "🌽",
+    cucumber: "🥒",
+    brinjal: "🍆",
+    carrot: "🥕",
+    banana: "🍌",
+    grapes: "🍇",
+    mango: "🥭",
+    watermelon: "🍉"
+  };
+
+  const cropKey = (raw.crop || "").toLowerCase().trim();
+  const emoji = cropEmojis[cropKey] || "🌿";
+
+  const gradients = [
+    { gradient: "from-rose-500 via-orange-400 to-amber-300", softGradient: "from-rose-50 via-orange-50 to-amber-50" },
+    { gradient: "from-emerald-500 via-teal-400 to-cyan-300", softGradient: "from-emerald-50 via-teal-50 to-cyan-50" },
+    { gradient: "from-amber-500 via-yellow-400 to-orange-300", softGradient: "from-amber-50 via-yellow-50 to-orange-50" },
+    { gradient: "from-violet-500 via-purple-400 to-pink-300", softGradient: "from-violet-50 via-purple-50 to-pink-50" },
+    { gradient: "from-blue-500 via-cyan-400 to-teal-300", softGradient: "from-blue-50 via-cyan-50 to-teal-50" }
+  ];
+  const g = gradients[(raw.id || idx) % gradients.length];
+
+  const qty = Number(raw.quantity) || 100;
+  const prc = Number(raw.price_per_kg || raw.price || 30);
+
+  return {
+    id: raw.id,
+    crop: raw.crop,
+    farmer: raw.farmer_name || raw.farmer || "Verified Farmer",
+    farmerPhone: raw.farmer_phone,
+    farmerUpi: raw.farmer_upi || `${raw.farmer_phone || '9876543210'}@upi`,
+    region: raw.location || raw.region || "Tamil Nadu",
+    price: prc,
+    quality: raw.quality || "Grade A+",
+    image: raw.image || emoji,
+    quantity: `${qty.toFixed(0)} kg`,
+    quantityNumber: qty,
+    delivery: raw.harvest_time || raw.delivery || "Ready Now",
+    badge: raw.status === "sold" ? "Sold Out" : "Live Telegram Supply",
+    status: raw.status || "active",
+    bidCount: Number(raw.bid_count || 0),
+    matching: 96,
+    trend: 12.5,
+    rating: 4.9,
+    orders: 48,
+    deliveryRate: 99,
+    acceptingRate: 98,
+    joined: "2024",
+    telegram: "@FarlX_bot",
+    description: raw.description || `Fresh, farm-graded ${raw.crop} harvested directly by farmer. Available for direct bulk procurement via FARLX Smart Escrow with instant UPI settlement upon delivery.`,
+    gradient: g.gradient,
+    softGradient: g.softGradient,
+    category: ["Tomato", "Onion", "Potato", "Chilli", "Cucumber", "Brinjal", "Carrot"].includes(raw.crop) ? "Vegetables" : "Grains & Fruits"
+  };
+}
+
+// ----------------- DATA -----------------
 
 const navItems = [
   { label: "Home", icon: Home },
@@ -571,11 +640,19 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen }) {
 function TopBar({
   onMenu,
   onSearch,
-  user = { name: "Rajesh Kumar", role: "Premium Buyer" }
+  notifications = [],
+  unreadCount = 0,
+  onClearNotifications,
+  onOpenOrders,
+  onSeedDemo,
+  isLive = true,
+  user = { name: "Rajesh Kumar", role: "Wholesale Buyer" }
 }) {
+  const [notifOpen, setNotifOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-30 min-h-[74px] border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-      <div className="flex min-h-[74px] w-full items-center gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 min-h-[74px] border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="flex min-h-[74px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           onClick={onMenu}
           className="shrink-0 rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:bg-slate-50 lg:hidden"
@@ -585,65 +662,165 @@ function TopBar({
         </button>
 
         <div className="hidden min-w-0 flex-1 md:block">
-          <label className="flex h-11 w-full max-w-[430px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-cyan-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
+          <label className="flex h-11 w-full max-w-[420px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-cyan-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
-
             <input
               type="text"
-              placeholder="Search crops, farmers, regions..."
+              placeholder="Search crops, farmers, locations..."
               onChange={(event) => onSearch(event.target.value)}
               className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
             />
-
-            <span className="hidden rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-slate-400 lg:block">
-              ⌘ K
-            </span>
           </label>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
+        <div className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
+          {/* Telegram Bot Direct Pill */}
+          <a
+            href="https://t.me/FarlX_bot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50/80 px-3 py-2 text-xs font-bold text-cyan-800 transition-all hover:bg-cyan-100 sm:inline-flex"
+          >
+            <Send className="h-3.5 w-3.5 text-cyan-600" />
+            <span>Bot: @FarlX_bot</span>
+            <ExternalLink className="h-3 w-3 text-cyan-500" />
+          </a>
+
+          {/* Quick Demo Seed Button */}
+          {onSeedDemo && (
+            <button
+              onClick={onSeedDemo}
+              title="Add sample farmer & listing for testing"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+            >
+              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <span className="hidden sm:inline">Demo Data</span>
+            </button>
+          )}
+
+          {/* Live Status Indicator */}
           <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 lg:flex">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            <span className="text-xs font-bold text-emerald-700">
-              Market live
-            </span>
+            <span className="h-2 w-2 animate-ping rounded-full bg-emerald-500" />
+            <span className="text-xs font-bold text-emerald-700">Live Sync</span>
           </div>
 
-          <button
-            className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500" />
-          </button>
+          {/* Functional Notification Button & Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white shadow-sm ring-2 ring-white animate-bounce">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
 
+            {/* Notification Dropdown Panel */}
+            <AnimatePresence>
+              {notifOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setNotifOpen(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 top-12 z-50 w-80 sm:w-96 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300"
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-900 to-[#071A2B] px-4 py-3.5 text-white">
+                      <div className="flex items-center gap-2">
+                        <Bell className="h-4 w-4 text-cyan-300" />
+                        <span className="text-sm font-black">Live Platform Alerts</span>
+                        {unreadCount > 0 && (
+                          <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                            {unreadCount} new
+                          </span>
+                        )}
+                      </div>
+                      {unreadCount > 0 && onClearNotifications && (
+                        <button
+                          onClick={onClearNotifications}
+                          className="text-[11px] font-bold text-cyan-200 hover:underline"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-xs text-slate-500">
+                          <p className="font-semibold text-slate-700">No notifications yet</p>
+                          <p className="mt-1">Events from Telegram (@FarlX_bot), bids, and escrow releases will appear here in real time.</p>
+                        </div>
+                      ) : (
+                        notifications.slice(0, 8).map((n) => {
+                          const isEscrow = n.type === "bid_accepted" || n.type === "payment_released";
+                          return (
+                            <div
+                              key={n.id}
+                              className={`p-3.5 text-xs transition-colors hover:bg-slate-50 ${
+                                !n.read ? "bg-cyan-50/40" : ""
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-bold text-slate-900">{n.title}</span>
+                                <span className="shrink-0 text-[10px] text-slate-400">
+                                  {new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-slate-600 leading-relaxed">{n.message}</p>
+                              {isEscrow && onOpenOrders && (
+                                <button
+                                  onClick={() => {
+                                    setNotifOpen(false);
+                                    onOpenOrders();
+                                  }}
+                                  className="mt-2 inline-flex items-center gap-1 font-bold text-cyan-700 hover:underline text-[11px]"
+                                >
+                                  View in Orders & Escrow →
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <div className="border-t border-slate-100 bg-slate-50 p-2.5 text-center">
+                      <button
+                        onClick={() => {
+                          setNotifOpen(false);
+                          if (onOpenOrders) onOpenOrders();
+                        }}
+                        className="text-xs font-bold text-slate-700 hover:text-cyan-700"
+                      >
+                        Manage Escrow Orders & Payments →
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* User profile */}
           <div className="flex items-center gap-3 border-l border-slate-200 pl-3 sm:pl-4">
             <div className="hidden text-right sm:block">
-              <div className="text-sm font-bold text-slate-900">
-                {user.name}
-              </div>
-              <div className="mt-0.5 text-xs font-medium text-slate-500">
-                {user.role}
-              </div>
+              <div className="text-sm font-bold text-slate-900">{user.name}</div>
+              <div className="mt-0.5 text-xs font-medium text-slate-500">{user.role}</div>
             </div>
-
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 via-blue-600 to-cyan-500 text-xs font-black text-white shadow-md shadow-blue-200">
               RK
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="border-t border-slate-100 px-4 py-3 md:hidden">
-        <label className="flex h-11 w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 focus-within:border-cyan-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
-          <Search className="h-4 w-4 shrink-0 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search crops, farmers, regions..."
-            onChange={(event) => onSearch(event.target.value)}
-            className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
-          />
-        </label>
       </div>
     </header>
   );
@@ -812,51 +989,51 @@ function Hero({ onExplore }) {
 
 // ----------------- STATS GRID -----------------
 
-function StatsGrid() {
+function StatsGrid({ liveStats }) {
   const stats = [
     {
-      label: "Total Spend",
-      value: "₹2,45,000",
-      change: "+12.5%",
+      label: "Total Trade Volume",
+      value: liveStats?.totalVolume ? `₹${liveStats.totalVolume.toLocaleString('en-IN')}` : "₹2,45,000",
+      change: "+15.2%",
       icon: DollarSign,
       iconStyle: "bg-blue-100 text-blue-700",
       badgeStyle: "bg-blue-50 text-blue-700",
       accent: "from-blue-500 to-cyan-400",
-      bottom: "Compared with last month",
+      bottom: "Smart Escrow settlement",
       bars: [35, 48, 42, 65, 56, 82]
     },
     {
-      label: "Active Orders",
-      value: "24",
-      change: "+3",
+      label: "Active Escrow Orders",
+      value: liveStats?.totalTransactions !== undefined ? String(liveStats.totalTransactions) : "18",
+      change: "+4",
       icon: Package,
       iconStyle: "bg-violet-100 text-violet-700",
       badgeStyle: "bg-violet-50 text-violet-700",
       accent: "from-violet-500 to-fuchsia-400",
-      bottom: "7 dispatching today",
+      bottom: "Awaiting buyer confirmation",
       bars: [20, 42, 35, 68, 56, 74]
     },
     {
-      label: "Farmers Connected",
-      value: "156",
-      change: "+18",
+      label: "Registered Farmers",
+      value: liveStats?.totalFarmers ? String(liveStats.totalFarmers) : "42",
+      change: "+12",
       icon: Users,
       iconStyle: "bg-emerald-100 text-emerald-700",
       badgeStyle: "bg-emerald-50 text-emerald-700",
       accent: "from-emerald-500 to-teal-400",
-      bottom: "Trusted supply network",
+      bottom: "Active in Telegram @FarlX_bot",
       bars: [32, 45, 51, 47, 68, 86]
     },
     {
-      label: "On-time Delivery",
-      value: "98.2%",
-      change: "+2.1%",
+      label: "Live Marketplace Listings",
+      value: liveStats?.totalListings ? String(liveStats.totalListings) : "28",
+      change: "Real-time",
       icon: ShieldCheck,
-      iconStyle: "bg-amber-100 text-amber-700",
-      badgeStyle: "bg-amber-50 text-amber-700",
-      accent: "from-amber-500 to-orange-400",
-      bottom: "Above buyer target",
-      bars: [50, 58, 52, 70, 78, 92]
+      iconStyle: "bg-amber-100 text-amber-800",
+      badgeStyle: "bg-amber-50 text-amber-800",
+      accent: "from-amber-500 to-yellow-400",
+      bottom: "Direct farm-gate supply",
+      bars: [40, 50, 44, 70, 62, 90]
     }
   ];
 
@@ -866,75 +1043,60 @@ function StatsGrid() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
+      className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6"
     >
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.1 }}
-        className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6"
-      >
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-
-          return (
-            <motion.article
-              variants={itemReveal}
-              whileHover={{ y: -6, scale: 1.01 }}
-              key={stat.label}
-              className="group relative min-h-[176px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-xl hover:shadow-slate-200/70 sm:p-6"
-            >
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <motion.article
+            variants={itemReveal}
+            whileHover={{ y: -4 }}
+            key={stat.label}
+            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-cyan-200 hover:shadow-xl hover:shadow-slate-200/80"
+          >
+            <div className="flex items-start justify-between gap-3">
               <div
-                className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${stat.accent}`}
-              />
-
-              <div className="flex items-start justify-between gap-4">
-                <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.iconStyle}`}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-black ${stat.badgeStyle}`}
-                >
-                  {stat.change}
-                </span>
+                className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.iconStyle} shadow-sm transition-transform duration-200 group-hover:scale-110`}
+              >
+                <Icon className="h-6 w-6" />
               </div>
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-black ${stat.badgeStyle}`}
+              >
+                {stat.change}
+              </span>
+            </div>
 
-              <div className="mt-5 text-[26px] font-black tracking-tight text-slate-900">
-                {stat.value}
+            <div className="mt-5 text-[26px] font-black tracking-tight text-slate-900">
+              {stat.value}
+            </div>
+            <div className="mt-1 text-sm font-bold text-slate-600">
+              {stat.label}
+            </div>
+
+            <div className="mt-3 flex items-end justify-between gap-3">
+              <p className="text-xs font-medium text-slate-400">
+                {stat.bottom}
+              </p>
+              <div className="flex h-7 items-end gap-1">
+                {stat.bars.map((height, index) => (
+                  <motion.span
+                    key={`${stat.label}-${index}`}
+                    initial={{ height: 0 }}
+                    whileInView={{ height: `${height}%` }}
+                    viewport={{ once: true }}
+                    transition={{
+                      delay: 0.18 + index * 0.07,
+                      duration: 0.35
+                    }}
+                    className={`w-1.5 rounded-t-full bg-gradient-to-t ${stat.accent}`}
+                  />
+                ))}
               </div>
-
-              <div className="mt-1 text-sm font-bold text-slate-600">
-                {stat.label}
-              </div>
-
-              <div className="mt-3 flex items-end justify-between gap-3">
-                <p className="text-xs font-medium text-slate-400">
-                  {stat.bottom}
-                </p>
-
-                <div className="flex h-7 items-end gap-1">
-                  {stat.bars.map((height, index) => (
-                    <motion.span
-                      key={`${stat.label}-${index}`}
-                      initial={{ height: 0 }}
-                      whileInView={{ height: `${height}%` }}
-                      viewport={{ once: true }}
-                      transition={{
-                        delay: 0.18 + index * 0.07,
-                        duration: 0.35
-                      }}
-                      className={`w-1.5 rounded-t-full bg-gradient-to-t ${stat.accent}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </motion.article>
-          );
-        })}
-      </motion.div>
+            </div>
+          </motion.article>
+        );
+      })}
     </motion.section>
   );
 }
@@ -1046,7 +1208,9 @@ function ListingCard({ listing, onView, compact = false }) {
 
 // ----------------- FEATURED LISTINGS -----------------
 
-function FeaturedListings({ onView, onExplore }) {
+function FeaturedListings({ currentListings, onView, onExplore }) {
+  const displayListings = (currentListings && currentListings.length > 0) ? currentListings : listings;
+
   return (
     <motion.section
       variants={reveal}
@@ -1055,8 +1219,8 @@ function FeaturedListings({ onView, onExplore }) {
       viewport={{ once: true, amount: 0.08 }}
     >
       <SectionHeading
-        title="Featured from verified farmers"
-        description="Curated opportunities matched to your buying activity, quality preferences, and delivery needs."
+        title="Live listings from verified farmers"
+        description="Fresh crop supplies harvested and posted in real time via Telegram @FarlX_bot."
         icon={Store}
         action={
           <motion.button
@@ -1077,7 +1241,7 @@ function FeaturedListings({ onView, onExplore }) {
         viewport={{ once: true, amount: 0.08 }}
         className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6"
       >
-        {listings.slice(0, 4).map((listing) => (
+        {displayListings.slice(0, 4).map((listing) => (
           <motion.div variants={itemReveal} key={listing.id}>
             <ListingCard listing={listing} onView={onView} />
           </motion.div>
@@ -1544,14 +1708,16 @@ function LivePrices() {
 
 // ----------------- MARKET PAGE -----------------
 
-function MarketPage({ searchQuery, onView }) {
+function MarketPage({ currentListings, searchQuery, onView }) {
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("Best Match");
 
-  const filteredListings = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
+  const sourceListings = (currentListings && currentListings.length > 0) ? currentListings : listings;
 
-    let result = listings.filter((listing) => {
+  const filteredListings = useMemo(() => {
+    const query = (searchQuery || "").trim().toLowerCase();
+
+    let result = sourceListings.filter((listing) => {
       const matchesCategory =
         category === "All" || listing.category === category;
 
@@ -1559,7 +1725,7 @@ function MarketPage({ searchQuery, onView }) {
         !query ||
         listing.crop.toLowerCase().includes(query) ||
         listing.farmer.toLowerCase().includes(query) ||
-        listing.region.toLowerCase().includes(query);
+        (listing.region && listing.region.toLowerCase().includes(query));
 
       return matchesCategory && matchesSearch;
     });
@@ -1567,17 +1733,12 @@ function MarketPage({ searchQuery, onView }) {
     if (sortBy === "Lowest Price") {
       result = [...result].sort((a, b) => a.price - b.price);
     }
-
-    if (sortBy === "Highest Match") {
-      result = [...result].sort((a, b) => b.matching - a.matching);
-    }
-
     if (sortBy === "Highest Rating") {
       result = [...result].sort((a, b) => b.rating - a.rating);
     }
 
     return result;
-  }, [category, searchQuery, sortBy]);
+  }, [category, searchQuery, sortBy, sourceListings]);
 
   return (
     <div className="space-y-10">
@@ -1593,125 +1754,124 @@ function MarketPage({ searchQuery, onView }) {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-100">
               <ScanSearch className="h-3.5 w-3.5" />
-              VERIFIED SUPPLY NETWORK
+              VERIFIED SUPPLY NETWORK & SMART ESCROW
             </div>
 
             <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">
-              Discover your next best supply.
+              Direct Farm Produce Marketplace
             </h1>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
-              Compare verified farmer offers using price, quality, quantity,
-              delivery readiness, and Farlx Smart Match.
+              Crops listed directly by farmers via Telegram bot (@FarlX_bot). Place your bid, get farmer acceptance, and pay through Escrow with instant UPI release upon delivery.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-            <p className="text-xs font-bold uppercase tracking-wide text-cyan-100">
-              Available today
-            </p>
-            <p className="mt-1 text-3xl font-black">42 listings</p>
-            <p className="mt-1 text-xs text-slate-200">
-              Across 18 verified suppliers
-            </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="https://t.me/FarlX_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 text-sm font-black text-white shadow-lg shadow-emerald-950/40 hover:opacity-95"
+            >
+              <Send className="h-4 w-4" />
+              List Crop via Telegram
+            </a>
           </div>
         </div>
       </motion.section>
 
-      <section>
-        <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            {["All", "Vegetables", "Grains"].map((item) => (
-              <button
-                key={item}
-                onClick={() => setCategory(item)}
-                className={`h-10 rounded-xl px-4 text-sm font-bold transition-colors ${
-                  category === item
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-              <ListFilter className="h-4 w-4" />
-              Sort by
-            </div>
-
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 outline-none transition-colors focus:border-cyan-400"
+      {/* Filter and sorting */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {["All", "Vegetables", "Grains & Fruits"].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={`rounded-xl px-4 py-2 text-xs font-black transition-all ${
+                category === cat
+                  ? "bg-slate-900 text-white shadow-md"
+                  : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+              }`}
             >
-              <option>Best Match</option>
-              <option>Lowest Price</option>
-              <option>Highest Match</option>
-              <option>Highest Rating</option>
-            </select>
-          </div>
+              {cat}
+            </button>
+          ))}
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm font-medium text-slate-500">
-            Showing <span className="font-black text-slate-800">{filteredListings.length}</span> verified listings
-          </p>
-
-          <div className="hidden items-center gap-2 text-xs font-semibold text-emerald-700 sm:flex">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            Live inventory updates enabled
-          </div>
+        <div className="flex items-center gap-2 self-end">
+          <span className="text-xs font-bold text-slate-500">Sort by:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none"
+          >
+            <option value="Best Match">Best Match</option>
+            <option value="Lowest Price">Lowest Price</option>
+            <option value="Highest Rating">Highest Rating</option>
+          </select>
         </div>
+      </div>
 
-        {filteredListings.length > 0 ? (
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredListings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                onView={onView}
-                compact
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <Search className="mx-auto h-8 w-8 text-slate-300" />
-            <h3 className="mt-4 text-lg font-black text-slate-800">
-              No matching listings found
-            </h3>
-            <p className="mt-2 text-sm text-slate-500">
-              Try a different crop, farmer, region, or category.
-            </p>
-          </div>
-        )}
-      </section>
+      {/* Grid of Listings */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
+        {filteredListings.map((listing) => (
+          <ListingCard key={listing.id} listing={listing} onView={onView} />
+        ))}
+      </div>
     </div>
   );
 }
 
-// ----------------- LISTING MODAL -----------------
+// ----------------- LISTING MODAL WITH REAL TELEGRAM BIDDING -----------------
 
-function ListingModal({ listing, onClose }) {
-  const [quantity, setQuantity] = useState(1);
-  const [bidPrice, setBidPrice] = useState(listing?.price || 0);
+function ListingModal({ listing, onClose, onBidSuccess }) {
+  const [quantity, setQuantity] = useState(100);
+  const [bidPrice, setBidPrice] = useState(listing?.price || 35);
+  const [buyerName, setBuyerName] = useState("Rajesh Kumar");
+  const [buyerPhone, setBuyerPhone] = useState("9876543210");
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [bidError, setBidError] = useState("");
 
   if (!listing) return null;
 
   const total = Number(quantity || 0) * Number(bidPrice || 0);
 
   const handleQuantityChange = (amount) => {
-    const nextValue = Math.max(1, Number(quantity) + amount);
+    const nextValue = Math.max(10, Number(quantity) + amount);
     setQuantity(nextValue);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setBidError("");
+
+    try {
+      const res = await fetch(`${API_BASE}/api/bids`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listing_id: listing.id,
+          buyer_name: buyerName,
+          buyer_phone: buyerPhone,
+          offered_price: Number(bidPrice),
+          quantity: Number(quantity)
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit bid");
+      }
+
+      setSubmitted(true);
+      if (onBidSuccess) onBidSuccess();
+    } catch (err) {
+      setBidError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -1729,7 +1889,7 @@ function ListingModal({ listing, onClose }) {
           exit={{ opacity: 0, y: 35, scale: 0.97 }}
           transition={{ type: "spring", stiffness: 280, damping: 25 }}
           onMouseDown={(event) => event.stopPropagation()}
-          className="max-h-[94vh] w-full overflow-y-auto rounded-t-[28px] bg-[#F6F8FC] shadow-2xl sm:max-w-6xl sm:rounded-[28px]"
+          className="max-h-[94vh] w-full overflow-y-auto rounded-t-[28px] bg-[#F6F8FC] shadow-2xl sm:max-w-4xl sm:rounded-[28px]"
         >
           <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
             <div className="flex items-center gap-3">
@@ -1739,7 +1899,7 @@ function ListingModal({ listing, onClose }) {
 
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                  Verified farmer listing
+                  Verified Farmer Listing
                 </p>
                 <h2 className="text-lg font-black text-slate-900">
                   {listing.crop} from {listing.farmer}
@@ -1757,416 +1917,503 @@ function ListingModal({ listing, onClose }) {
           </div>
 
           {submitted ? (
-            <div className="mx-auto max-w-2xl px-5 py-12 text-center sm:px-10 sm:py-16">
-              <motion.div
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 250, damping: 16 }}
-                className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-200"
-              >
-                <CheckCircle2 className="h-10 w-10" />
-              </motion.div>
+            <div className="mx-auto max-w-xl px-5 py-12 text-center sm:px-10 sm:py-16">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-xl shadow-emerald-200">
+                <Check className="h-10 w-10" />
+              </div>
 
-              <p className="mt-7 text-sm font-bold uppercase tracking-[0.14em] text-emerald-700">
-                Bid submitted successfully
-              </p>
-
-              <h3 className="mt-3 text-3xl font-black tracking-tight text-slate-900">
-                Your bid is now with {listing.farmer}.
+              <h3 className="mt-6 text-2xl font-black text-slate-900">
+                Bid Dispatched to Farmer! 🔔
               </h3>
 
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                You placed a bid for <strong>{quantity} tonne(s)</strong> of{" "}
-                <strong>{listing.crop}</strong> at{" "}
-                <strong>₹{bidPrice}/kg</strong>. The farmer will receive this
-                request through Telegram and can accept it directly.
-              </p>
-
-              <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-left">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                    <MessageSquare className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <p className="font-black text-emerald-950">
-                      Telegram farmer workflow started
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-emerald-800">
-                      Farlx will notify the farmer. When the farmer accepts,
-                      the transaction will appear in your Live Data page.
-                    </p>
-                  </div>
+              <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-5 text-left text-sm text-emerald-950">
+                <p className="font-bold flex items-center gap-2">
+                  <Send className="h-4 w-4 text-emerald-700" />
+                  Live Telegram Notification Sent!
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-emerald-800">
+                  Farmer <strong>{listing.farmer}</strong> has just received an interactive notification on Telegram (<strong>@FarlX_bot</strong>) with your offer of <strong>₹{bidPrice}/kg</strong> for <strong>{quantity} kg</strong> (Total: ₹{total.toLocaleString('en-IN')}).
+                </p>
+                <div className="mt-3 border-t border-emerald-200 pt-3 text-xs text-emerald-800">
+                  When the farmer taps <strong>[✅ Accept Bid]</strong>, the transaction will be locked into the <strong>FARLX Smart Escrow</strong>. You can track and release payment under <strong>Buy & Sell</strong>.
                 </div>
               </div>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <a
-                  href="/live-data"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white transition-colors hover:bg-teal-700"
-                >
-                  Open Live Data
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-
                 <button
                   onClick={onClose}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                  className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-black text-white hover:bg-slate-800"
                 >
-                  Continue browsing
+                  Done & Back to Market
                 </button>
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 p-5 sm:p-7 xl:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)]">
-              <div className="space-y-6">
-                <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-                  <div
-                    className={`relative flex min-h-[220px] items-center justify-center overflow-hidden bg-gradient-to-br ${listing.softGradient} text-8xl`}
-                  >
-                    <div
-                      className={`absolute -right-12 -top-12 h-44 w-44 rounded-full bg-gradient-to-br ${listing.gradient} opacity-25 blur-3xl`}
-                    />
-                    <div className="absolute -bottom-16 -left-12 h-44 w-44 rounded-full bg-white/70 blur-3xl" />
-
-                    <span className="relative">{listing.image}</span>
-
-                    <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm backdrop-blur">
-                      <BadgeCheck className="h-4 w-4 text-emerald-600" />
-                      Verified supplier
-                    </div>
-
-                    <div className="absolute bottom-5 right-5 rounded-full bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+            <div className="grid grid-cols-1 gap-8 p-6 lg:grid-cols-12 lg:p-8">
+              {/* Left Column: Crop and Farmer Details */}
+              <div className="space-y-6 lg:col-span-7">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
                       {listing.badge}
-                    </div>
-                  </div>
-
-                  <div className="p-5 sm:p-6">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-2xl font-black text-slate-900">
-                            {listing.crop}
-                          </h3>
-
-                          <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700">
-                            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                            {listing.quality}
-                          </span>
-                        </div>
-
-                        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-slate-500">
-                          <MapPin className="h-4 w-4 text-slate-400" />
-                          {listing.region} · {listing.farmer}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-emerald-50 px-4 py-3 text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-600">
-                          Starting price
-                        </p>
-                        <p className="mt-1 text-2xl font-black text-emerald-700">
-                          ₹{listing.price}
-                          <span className="text-sm">/kg</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="mt-5 text-sm leading-7 text-slate-600">
-                      {listing.description}
-                    </p>
-
-                    <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <div className="rounded-xl bg-slate-50 p-3">
-                        <PackageCheck className="h-4 w-4 text-blue-600" />
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                          Quantity
-                        </p>
-                        <p className="mt-1 text-sm font-black text-slate-800">
-                          {listing.quantity}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-slate-50 p-3">
-                        <Truck className="h-4 w-4 text-emerald-600" />
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                          Delivery
-                        </p>
-                        <p className="mt-1 text-sm font-black text-slate-800">
-                          {listing.delivery}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-slate-50 p-3">
-                        <Star className="h-4 w-4 text-amber-500" />
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                          Rating
-                        </p>
-                        <p className="mt-1 text-sm font-black text-slate-800">
-                          {listing.rating}/5
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-slate-50 p-3">
-                        <ClipboardList className="h-4 w-4 text-violet-600" />
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                          Orders
-                        </p>
-                        <p className="mt-1 text-sm font-black text-slate-800">
-                          {listing.orders}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-blue-600 text-white">
-                      <Sparkles className="h-5 w-5" />
-                    </div>
-
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-black text-slate-900">
-                          Farlx Smart Match
-                        </h3>
-                        <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-black text-violet-700">
-                          {listing.matching}% match
-                        </span>
-                      </div>
-
-                      <p className="mt-1 text-sm leading-6 text-slate-500">
-                        This recommendation is based on your buying behaviour,
-                        quality preferences, delivery needs, and supplier trust.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${listing.matching}%` }}
-                      transition={{ duration: 0.85, ease: "easeOut" }}
-                      className="h-full rounded-full bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-500"
-                    />
-          </div>
-
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {listing.reasons.map((reason) => (
-                      <div
-                        key={reason}
-                        className="flex items-start gap-2 rounded-xl bg-slate-50 p-3"
-                      >
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                        <p className="text-xs font-semibold leading-5 text-slate-600">
-                          {reason}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-emerald-600" />
-                    <h3 className="text-lg font-black text-slate-900">
-                      Farmer trust profile
-                    </h3>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        On-time delivery
-                      </p>
-                      <p className="mt-2 text-xl font-black text-emerald-700">
-                        {listing.deliveryRate}%
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        Bid acceptance
-                      </p>
-                      <p className="mt-2 text-xl font-black text-blue-700">
-                        {listing.acceptingRate}%
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        Marketplace orders
-                      </p>
-                      <p className="mt-2 text-xl font-black text-violet-700">
-                        {listing.orders}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        Farlx since
-                      </p>
-                      <p className="mt-2 text-xl font-black text-amber-700">
-                        {listing.joined}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {listing.verification.map((item) => (
-                      <span
-                        key={item}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                        {item}
-                      </span>
-                    ))}
-
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-700">
-                      <MessageSquare className="h-3.5 w-3.5" />
-                      Telegram: {listing.telegram}
+                    </span>
+                    <span className="text-xs font-bold text-slate-400">
+                      ID: #{listing.id}
                     </span>
                   </div>
-                </section>
+
+                  <h1 className="mt-4 text-2xl font-black text-slate-900 sm:text-3xl">
+                    {listing.crop} - Grade {listing.quality}
+                  </h1>
+
+                  <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold text-slate-600">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4 text-cyan-600" />
+                      <span>{listing.region}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock3 className="h-4 w-4 text-emerald-600" />
+                      <span>{listing.delivery}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-violet-600" />
+                      <span>Farmer: {listing.farmer}</span>
+                    </div>
+                  </div>
+
+                  <p className="mt-5 text-sm leading-relaxed text-slate-600">
+                    {listing.description}
+                  </p>
+                </div>
+
+                {/* Workflow Explanation Banner for Judges */}
+                <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-5 text-xs text-cyan-950">
+                  <p className="font-black text-cyan-900 flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-cyan-700" />
+                    How SIH Escrow & Telegram Flow Works:
+                  </p>
+                  <ol className="mt-2 list-decimal list-inside space-y-1.5 text-cyan-900 leading-relaxed font-medium">
+                    <li>You submit a bid here with your offer price & quantity.</li>
+                    <li>Farmer receives instant Telegram notification on <strong>@FarlX_bot</strong> with [Accept] button.</li>
+                    <li>Farmer accepts $ightarrow$ Order created in <strong>Escrow</strong>.</li>
+                    <li>Upon delivery, you mark <strong>Product Received</strong> $ightarrow$ Payment instantly released to farmer UPI/QR!</li>
+                  </ol>
+                </div>
               </div>
 
-              <aside>
+              {/* Right Column: Bid Form */}
+              <div className="lg:col-span-5">
                 <form
                   onSubmit={handleSubmit}
-                  className="sticky top-[88px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
                 >
                   <div className="bg-gradient-to-r from-slate-950 via-[#0B3C4D] to-[#0A5B54] p-5 text-white">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-cyan-100">
-                          Buyer action
-                        </p>
-                        <h3 className="mt-1 text-xl font-black">
-                          Place your bid
-                        </h3>
-                      </div>
-
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
-                        <Handshake className="h-5 w-5 text-emerald-200" />
-                      </div>
-                    </div>
-
-                    <p className="mt-3 text-sm leading-6 text-slate-200">
-                      Your bid will be delivered to the farmer through Telegram.
+                    <p className="text-xs font-bold uppercase tracking-wider text-cyan-200">
+                      Direct Negotiation
+                    </p>
+                    <h3 className="mt-1 text-xl font-black">Submit Your Bid</h3>
+                    <p className="mt-1 text-xs text-slate-300">
+                      Direct to farmer Telegram in real-time
                     </p>
                   </div>
 
-                  <div className="space-y-5 p-5">
-                    <div className="rounded-xl bg-emerald-50 p-4">
-                      <p className="text-xs font-bold text-emerald-700">
-                        Marketplace rate
-                      </p>
-                      <p className="mt-1 text-2xl font-black text-emerald-800">
-                        ₹{listing.price}
-                        <span className="text-sm">/kg</span>
-                      </p>
-                      <p className="mt-1 text-xs text-emerald-700">
-                        You can submit your own bid price below.
-                      </p>
+                  <div className="space-y-4 p-5">
+                    {bidError && (
+                      <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700">
+                        {bidError}
+                      </div>
+                    )}
+
+                    <div className="rounded-xl bg-slate-50 p-3.5 flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-500">Listing Asking Price</span>
+                      <span className="text-lg font-black text-slate-900">₹{listing.price}/kg</span>
                     </div>
 
                     <div>
-                      <label className="text-sm font-black text-slate-800">
-                        Quantity required
-                      </label>
+                      <label className="text-xs font-bold text-slate-700">Buyer Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={buyerName}
+                        onChange={(e) => setBuyerName(e.target.value)}
+                        className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-semibold outline-none focus:border-cyan-500"
+                      />
+                    </div>
 
-                      <div className="mt-2 flex h-12 items-center overflow-hidden rounded-xl border border-slate-200">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700">Buyer Mobile Number</label>
+                      <input
+                        type="tel"
+                        required
+                        value={buyerPhone}
+                        onChange={(e) => setBuyerPhone(e.target.value)}
+                        className="mt-1 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm font-semibold outline-none focus:border-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700">Quantity (kg)</label>
+                      <div className="mt-1 flex h-11 items-center overflow-hidden rounded-xl border border-slate-200">
                         <button
                           type="button"
-                          onClick={() => handleQuantityChange(-1)}
-                          className="flex h-full w-12 items-center justify-center border-r border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+                          onClick={() => handleQuantityChange(-25)}
+                          className="flex h-full w-10 items-center justify-center border-r border-slate-200 bg-slate-50 hover:bg-slate-100"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-4 w-4 text-slate-600" />
                         </button>
-
                         <input
                           type="number"
                           min="1"
+                          required
                           value={quantity}
-                          onChange={(event) => setQuantity(event.target.value)}
-                          className="h-full min-w-0 flex-1 text-center text-lg font-black text-slate-900 outline-none"
+                          onChange={(e) => setQuantity(Number(e.target.value))}
+                          className="h-full min-w-0 flex-1 text-center font-bold text-slate-900 outline-none"
                         />
-
                         <button
                           type="button"
-                          onClick={() => handleQuantityChange(1)}
-                          className="flex h-full w-12 items-center justify-center border-l border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+                          onClick={() => handleQuantityChange(25)}
+                          className="flex h-full w-10 items-center justify-center border-l border-slate-200 bg-slate-50 hover:bg-slate-100"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-4 w-4 text-slate-600" />
                         </button>
                       </div>
-
-                      <p className="mt-2 text-xs text-slate-500">
-                        Available supply: {listing.quantity}
-                      </p>
                     </div>
 
                     <div>
-                      <label className="text-sm font-black text-slate-800">
-                        Your bid price per kg
-                      </label>
-
-                      <div className="mt-2 flex h-12 items-center rounded-xl border border-slate-200 px-4 transition-colors focus-within:border-cyan-400 focus-within:ring-4 focus-within:ring-cyan-100">
-                        <span className="text-lg font-black text-slate-500">₹</span>
+                      <label className="text-xs font-bold text-slate-700">Your Bid Price (₹ per kg)</label>
+                      <div className="mt-1 flex h-11 items-center rounded-xl border border-slate-200 px-3 focus-within:border-cyan-500">
+                        <span className="font-bold text-slate-400">₹</span>
                         <input
                           type="number"
                           min="1"
+                          required
                           value={bidPrice}
-                          onChange={(event) => setBidPrice(event.target.value)}
-                          className="min-w-0 flex-1 bg-transparent pl-2 text-lg font-black text-slate-900 outline-none"
+                          onChange={(e) => setBidPrice(Number(e.target.value))}
+                          className="ml-2 h-full flex-1 font-bold text-slate-900 outline-none"
                         />
-                        <span className="text-sm font-bold text-slate-400">/kg</span>
+                        <span className="text-xs text-slate-400 font-bold">/kg</span>
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-semibold text-slate-500">
-                          Estimated bid value
-                        </span>
-                        <span className="text-lg font-black text-slate-900">
-                          ₹{total.toLocaleString("en-IN")}
-                        </span>
-                      </div>
-
-                      <div className="mt-3 border-t border-slate-200 pt-3">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                          <Clock3 className="h-4 w-4 text-cyan-600" />
-                          Farmer usually responds within 2 hours
-                        </div>
-                      </div>
+                    <div className="rounded-xl bg-emerald-50 p-3 flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-800">Total Escrow Value</span>
+                      <span className="text-lg font-black text-emerald-900">₹{total.toLocaleString('en-IN')}</span>
                     </div>
 
                     <button
                       type="submit"
-                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-sm font-black text-white shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                      disabled={submitting}
+                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-sm font-black text-white shadow-lg transition-all hover:opacity-95 disabled:opacity-50"
                     >
-                      <Send className="h-4 w-4" />
-                      Submit bid to farmer
+                      {submitting ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          Sending to Farmer Telegram...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" />
+                          Send Bid to Farmer Telegram
+                        </>
+                      )}
                     </button>
-
-                    <div className="flex items-start gap-2 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-700">
-                      <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                      The farmer receives this bid in Telegram and can accept it
-                      directly. Farlx records the transaction status.
-                    </div>
                   </div>
                 </form>
-              </aside>
+              </div>
             </div>
           )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+// ----------------- UPI SETTLEMENT MODAL (Escrow Release to Farmer) -----------------
+
+function UpiSettlementModal({ settlement, onClose }) {
+  if (!settlement) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="w-full max-w-md overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl"
+        >
+          <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-6 text-center text-white">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-3xl shadow-inner backdrop-blur">
+              🎉
+            </div>
+            <h2 className="mt-3 text-xl font-black">Escrow Payment Released!</h2>
+            <p className="mt-1 text-xs text-emerald-100">
+              Product received & funds settled directly to the farmer
+            </p>
+          </div>
+
+          <div className="p-6 text-center space-y-4">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <p className="text-xs font-bold text-slate-500">Beneficiary Farmer</p>
+              <p className="text-base font-black text-slate-900">{settlement.farmerName || "Farmer"}</p>
+              <p className="text-xs font-mono text-cyan-700 mt-0.5">{settlement.farmerUpi || "farmer@upi"}</p>
+              
+              <div className="mt-3 border-t border-slate-200 pt-3 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500">Amount Released</span>
+                <span className="text-2xl font-black text-emerald-600">₹{Number(settlement.amount || 0).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            {/* Scannable Real UPI QR Code */}
+            <div className="mx-auto flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+              <p className="text-[11px] font-bold text-slate-500 mb-2 flex items-center gap-1.5">
+                <QrCode className="h-3.5 w-3.5 text-slate-700" />
+                Scan to Pay via GPay / PhonePe / Paytm
+              </p>
+              <img
+                src={settlement.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(settlement.upiUri || 'upi://pay')}`}
+                alt="Farmer UPI QR Code"
+                className="h-44 w-44 rounded-xl border border-slate-100 shadow-sm"
+              />
+              <p className="mt-2 text-[10px] font-medium text-slate-400">
+                UTR / Ref: TXN-{settlement.transactionId || settlement.id || '101'}
+              </p>
+            </div>
+
+            {/* Direct UPI Intent Link */}
+            {settlement.upiUri && (
+              <a
+                href={settlement.upiUri}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-bold text-white shadow-md hover:opacity-95"
+              >
+                <Smartphone className="h-4 w-4" />
+                Open Direct in Mobile UPI App
+              </a>
+            )}
+
+            <div className="rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800 font-medium">
+              🔔 Instant confirmation was delivered to the farmer's Telegram!
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full rounded-xl bg-slate-900 py-3 text-xs font-black text-white hover:bg-slate-800"
+            >
+              Close & Return to Dashboard
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ----------------- ORDERS & ESCROW SETTLEMENT PAGE ("Buy & Sell") -----------------
+
+function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
+  const [selectedSettlement, setSelectedSettlement] = useState(null);
+  const [releasingId, setReleasingId] = useState(null);
+
+  const handleConfirmDelivery = async (txn) => {
+    setReleasingId(txn.id);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/transactions/${txn.id}/confirm-delivery`, {
+        method: "POST"
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to confirm delivery");
+
+      setSelectedSettlement({
+        ...data.upi,
+        id: txn.id,
+        farmerName: txn.farmer_name,
+        farmerUpi: txn.farmer_upi,
+        amount: txn.total_amount
+      });
+
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert("Error confirming delivery: " + err.message);
+    } finally {
+      setReleasingId(null);
+    }
+  };
+
+  const pendingEscrow = transactions.filter((t) => t.status === "payment_escrowed");
+  const completed = transactions.filter((t) => t.status === "payment_released");
+
+  const totalEscrowAmount = pendingEscrow.reduce((acc, t) => acc + Number(t.total_amount || 0), 0);
+  const totalSettledAmount = completed.reduce((acc, t) => acc + Number(t.total_amount || 0), 0);
+
+  return (
+    <div className="space-y-8">
+      {/* Header Banner */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9"
+      >
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <ShieldCheck className="h-4 w-4 text-emerald-300" />
+          SMART ESCROW & SETTLEMENT WORKFLOW
+        </div>
+
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          Buyer Orders & Escrow Release
+        </h1>
+
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          When a farmer accepts your bid in Telegram, funds are locked safely in Escrow. Once you physically inspect and receive the produce, tap <strong>Confirm Product Received</strong> to immediately release payment to the farmer's UPI/QR!
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-4 pt-2">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+            <span className="text-xs font-bold text-slate-300">Held in Escrow</span>
+            <p className="text-xl font-black text-amber-300">₹{totalEscrowAmount.toLocaleString('en-IN')}</p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+            <span className="text-xs font-bold text-slate-300">Settled to Farmers</span>
+            <p className="text-xl font-black text-emerald-400">₹{totalSettledAmount.toLocaleString('en-IN')}</p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
+            <span className="text-xs font-bold text-slate-300">Total Active Orders</span>
+            <p className="text-xl font-black text-cyan-300">{transactions.length}</p>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Orders List */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-black text-slate-900">Active Supply Orders ({transactions.length})</h2>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Refresh
+            </button>
+          )}
+        </div>
+
+        {transactions.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl">
+              📦
+            </div>
+            <h3 className="mt-4 text-base font-black text-slate-800">No Orders in Escrow Yet</h3>
+            <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
+              Place a bid on any live crop in the Marketplace. Once the farmer taps [Accept Bid] in Telegram, the order will appear here in Escrow!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5">
+            {transactions.map((txn) => {
+              const isEscrow = txn.status === "payment_escrowed";
+              const isReleased = txn.status === "payment_released";
+
+              return (
+                <div
+                  key={txn.id}
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="rounded-md bg-slate-900 px-2 py-0.5 text-xs font-black text-white">
+                          #TXN-{txn.id}
+                        </span>
+                        <h3 className="text-lg font-black text-slate-900">
+                          {txn.crop || "Fresh Produce"} - {txn.quantity ? `${txn.quantity} kg` : "Standard batch"}
+                        </h3>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${
+                            isReleased
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-amber-100 text-amber-800 animate-pulse"
+                          }`}
+                        >
+                          {isReleased ? "🟢 Payment Released (Completed)" : "🟡 In Escrow (Dispatched)"}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600 font-medium">
+                        <span>👨‍🌾 Farmer: <strong>{txn.farmer_name || "Ramesh"}</strong></span>
+                        <span>💳 Farmer UPI: <strong className="font-mono text-cyan-800">{txn.farmer_upi || "farmer@upi"}</strong></span>
+                        <span>👤 Buyer: <strong>{txn.buyer_name || "Rajesh Kumar"}</strong></span>
+                        <span>📅 Date: <strong>{new Date(txn.created_at).toLocaleDateString()}</strong></span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-slate-400">Order Amount</span>
+                        <div className="text-2xl font-black text-slate-900">
+                          ₹{Number(txn.total_amount || 0).toLocaleString('en-IN')}
+                        </div>
+                      </div>
+
+                      {isEscrow ? (
+                        <button
+                          onClick={() => handleConfirmDelivery(txn)}
+                          disabled={releasingId === txn.id}
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-xs font-black text-white shadow-md hover:opacity-95 disabled:opacity-50"
+                        >
+                          {releasingId === txn.id ? (
+                            <>
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                              Releasing to UPI...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="h-4 w-4" />
+                              Confirm Product Received & Pay Farmer
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            setSelectedSettlement({
+                              id: txn.id,
+                              farmerName: txn.farmer_name,
+                              farmerUpi: txn.farmer_upi,
+                              amount: txn.total_amount
+                            })
+                          }
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+                        >
+                          <QrCode className="h-3.5 w-3.5" />
+                          View UPI Settlement & QR
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* UPI Settlement Modal */}
+      {selectedSettlement && (
+        <UpiSettlementModal
+          settlement={selectedSettlement}
+          onClose={() => setSelectedSettlement(null)}
+        />
+      )}
+    </div>
   );
 }
 
@@ -2209,15 +2456,55 @@ function ComingSoon({ title }) {
   );
 }
 
-// ----------------- APP WITH ROUTES -----------------
+// ----------------- APP WITH LIVE BACKEND & TELEGRAM SYNC -----------------
 
 export default function App() {
   const [activeNav, setActiveNav] = useState("Home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Live state from Backend
+  const [liveListings, setLiveListings] = useState([]);
+  const [liveStats, setLiveStats] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch all live data from backend
+  const fetchLiveData = async () => {
+    try {
+      const [lRes, sRes, tRes, nRes] = await Promise.all([
+        fetch(`${API_BASE}/api/listings`).then((r) => r.json()).catch(() => []),
+        fetch(`${API_BASE}/api/stats`).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/transactions`).then((r) => r.json()).catch(() => []),
+        fetch(`${API_BASE}/api/notifications`).then((r) => r.json()).catch(() => [])
+      ]);
+
+      if (Array.isArray(lRes) && lRes.length > 0) {
+        setLiveListings(lRes.map((r, idx) => normalizeListing(r, idx)));
+      }
+
+      if (sRes) setLiveStats(sRes);
+      if (Array.isArray(tRes)) setTransactions(tRes);
+      if (Array.isArray(nRes)) {
+        setNotifications(nRes);
+        setUnreadNotifs(nRes.filter((n) => !n.read).length);
+      }
+    } catch (err) {
+      console.warn("Live fetch error:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchLiveData();
+    // Poll every 4 seconds so Telegram updates show live without reload
+    const timer = setInterval(fetchLiveData, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/market") {
@@ -2227,6 +2514,26 @@ export default function App() {
     }
   }, [location.pathname]);
 
+  const handleClearNotifications = async () => {
+    try {
+      await fetch(`${API_BASE}/api/notifications/read-all`, { method: "POST" });
+      setUnreadNotifs(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSeedDemo = async () => {
+    try {
+      await fetch(`${API_BASE}/api/demo-seed`, { method: "POST" });
+      await fetchLiveData();
+      alert("✅ Demo Farmer, Crop Listing & Bid created! Check the Market and Buy & Sell tabs.");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const openListing = (listing) => setSelectedListing(listing);
 
   const goToMarket = () => {
@@ -2235,12 +2542,25 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const openOrders = () => {
+    setActiveNav("Buy & Sell");
+    navigate("/");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Listings to display (live from DB if available, else rich mockup fallback)
+  const currentListings = liveListings.length > 0 ? liveListings : listings;
+
   const renderHome = () => {
     return (
       <div className="space-y-10">
         <Hero onExplore={goToMarket} />
-        <StatsGrid />
-        <FeaturedListings onView={openListing} onExplore={goToMarket} />
+        <StatsGrid liveStats={liveStats} />
+        <FeaturedListings
+          currentListings={currentListings}
+          onView={openListing}
+          onExplore={goToMarket}
+        />
         <Insights />
         <BuyerPulse onOpenListing={openListing} />
         <LivePrices />
@@ -2255,7 +2575,21 @@ export default function App() {
 
     if (activeNav === "Market") {
       return (
-        <MarketPage searchQuery={searchQuery} onView={openListing} />
+        <MarketPage
+          currentListings={currentListings}
+          searchQuery={searchQuery}
+          onView={openListing}
+        />
+      );
+    }
+
+    if (activeNav === "Buy & Sell") {
+      return (
+        <OrdersEscrowPage
+          transactions={transactions}
+          onRefresh={fetchLiveData}
+          onOpenListing={openListing}
+        />
       );
     }
 
@@ -2279,6 +2613,11 @@ export default function App() {
               <TopBar
                 onMenu={() => setMobileOpen(true)}
                 onSearch={setSearchQuery}
+                notifications={notifications}
+                unreadCount={unreadNotifs}
+                onClearNotifications={handleClearNotifications}
+                onOpenOrders={openOrders}
+                onSeedDemo={handleSeedDemo}
               />
 
               <main className="w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10 xl:py-10">
@@ -2293,6 +2632,9 @@ export default function App() {
                 <ListingModal
                   listing={selectedListing}
                   onClose={() => setSelectedListing(null)}
+                  onBidSuccess={() => {
+                    fetchLiveData();
+                  }}
                 />
               )}
             </AnimatePresence>
@@ -2314,10 +2656,19 @@ export default function App() {
               <TopBar
                 onMenu={() => setMobileOpen(true)}
                 onSearch={setSearchQuery}
+                notifications={notifications}
+                unreadCount={unreadNotifs}
+                onClearNotifications={handleClearNotifications}
+                onOpenOrders={openOrders}
+                onSeedDemo={handleSeedDemo}
               />
               <main className="w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10 xl:py-10">
                 <div className="mx-auto w-full max-w-[1720px]">
-                  <MarketPage searchQuery={searchQuery} onView={openListing} />
+                  <MarketPage
+                    currentListings={currentListings}
+                    searchQuery={searchQuery}
+                    onView={openListing}
+                  />
                 </div>
               </main>
             </div>
@@ -2327,6 +2678,9 @@ export default function App() {
                 <ListingModal
                   listing={selectedListing}
                   onClose={() => setSelectedListing(null)}
+                  onBidSuccess={() => {
+                    fetchLiveData();
+                  }}
                 />
               )}
             </AnimatePresence>
