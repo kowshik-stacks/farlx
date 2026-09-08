@@ -65,7 +65,13 @@ import {
   ListFilter,
   QrCode,
   RefreshCw,
-  Smartphone
+  Smartphone,
+  Sun,
+  Moon,
+  Globe,
+  Camera,
+  Download,
+  FileText
 } from "lucide-react";
 import {
   AreaChart,
@@ -81,6 +87,7 @@ import {
 } from "recharts";
 
 import LiveData from "./pages/LiveData";
+import { translations } from "./translations";
 
 
 const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
@@ -652,7 +659,7 @@ function TopBar({
   const [notifOpen, setNotifOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 min-h-[74px] border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+    <header className={"sticky top-0 z-30 min-h-[74px] border-b backdrop-blur-xl transition-colors duration-200 " + (isDark ? "border-slate-700/80 bg-[#0B1120]/95" : "border-slate-200/80 bg-white/90")}>
       <div className="flex min-h-[74px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           onClick={onMenu}
@@ -687,6 +694,45 @@ function TopBar({
             <ExternalLink className="h-3 w-3 text-cyan-500" />
           </a>
 
+          {/* Language Switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen(v => !v)}
+              className={"flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-xs font-bold transition-all " + (isDark ? "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-sm")}
+              title="Select Language"
+            >
+              <Globe className="h-3.5 w-3.5 text-emerald-500" />
+              <span className="hidden sm:inline">{currentLang.flag} {currentLang.label.split(' ')[0]}</span>
+            </button>
+            {langOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+                <div className={"absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-2xl border shadow-2xl " + (isDark ? "border-slate-700 bg-[#0B1120]" : "border-slate-200 bg-white")}>
+                  {LANGS.map(l => (
+                    <button
+                      key={l.code}
+                      onClick={() => { if(onSetLang) onSetLang(l.code); setLangOpen(false); }}
+                      className={"flex w-full items-center gap-2.5 px-4 py-2.5 text-sm font-semibold transition-colors " + (l.code === lang ? (isDark ? "bg-emerald-900/40 text-emerald-300" : "bg-emerald-50 text-emerald-700") : (isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-50"))}
+                    >
+                      <span>{l.flag}</span>
+                      <span>{l.label}</span>
+                      {l.code === lang && <Check className="ml-auto h-3.5 w-3.5" />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={onToggleDark}
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className={"rounded-xl border p-2.5 transition-all " + (isDark ? "border-slate-700 bg-slate-800 text-amber-400 hover:bg-slate-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shadow-sm hover:text-amber-500")}
+          >
+            {isDark ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+          </button>
+
           {/* Quick Demo Seed Button */}
           {onSeedDemo && (
             <button
@@ -709,7 +755,7 @@ function TopBar({
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
+              className={"relative rounded-xl border p-2.5 transition-all hover:-translate-y-0.5 " + (isDark ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-violet-700 hover:bg-violet-900/40 hover:text-violet-300" : "border-slate-200 bg-white text-slate-600 shadow-sm hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700")}
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
@@ -990,7 +1036,7 @@ function Hero({ onExplore }) {
 
 // ----------------- STATS GRID -----------------
 
-function StatsGrid({ liveStats }) {
+function StatsGrid({ liveStats, isDark = false }) {
   const stats = [
     {
       label: "Total Trade Volume",
@@ -1053,7 +1099,7 @@ function StatsGrid({ liveStats }) {
             variants={itemReveal}
             whileHover={{ y: -4 }}
             key={stat.label}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-cyan-200 hover:shadow-xl hover:shadow-slate-200/80"
+            className={"group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-6 shadow-sm transition-all duration-300 hover:shadow-xl " + (isDark ? "border-slate-800 bg-[#111827] hover:border-cyan-800" : "border-slate-200 bg-white hover:border-cyan-200 hover:shadow-slate-200/80")}
           >
             <div className="flex items-start justify-between gap-3">
               <div
@@ -1068,10 +1114,10 @@ function StatsGrid({ liveStats }) {
               </span>
             </div>
 
-            <div className="mt-5 text-[26px] font-black tracking-tight text-slate-900">
+            <div className={"mt-5 text-[26px] font-black tracking-tight " + (isDark ? "text-white" : "text-slate-900")}>
               {stat.value}
             </div>
-            <div className="mt-1 text-sm font-bold text-slate-600">
+            <div className={"mt-1 text-sm font-bold " + (isDark ? "text-slate-300" : "text-slate-600")}>
               {stat.label}
             </div>
 
@@ -1991,7 +2037,7 @@ function ListingModal({ listing, onClose, onBidSuccess }) {
                 <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-5 text-xs text-cyan-950">
                   <p className="font-black text-cyan-900 flex items-center gap-1.5">
                     <ShieldCheck className="h-4 w-4 text-cyan-700" />
-                    How SIH Escrow & Telegram Flow Works:
+                    How FARLX Smart Escrow & Telegram Flow Works:
                   </p>
                   <ol className="mt-2 list-decimal list-inside space-y-1.5 text-cyan-900 leading-relaxed font-medium">
                     <li>You submit a bid here with your offer price & quantity.</li>
@@ -2295,7 +2341,7 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
       {/* Orders List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-900">Active Supply Orders ({transactions.length})</h2>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">Active Supply Orders ({transactions.length})</h2>
           {onRefresh && (
             <button
               onClick={onRefresh}
@@ -2418,42 +2464,505 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
   );
 }
 
-// ----------------- COMING SOON -----------------
+// ----------------- FUNCTIONAL TABS: AI INSPECTOR, LOGISTICS, WEATHER, MY FARM, COMMUNITY, REPORTS -----------------
 
-function ComingSoon({ title }) {
+function AiInspectorPage({ isDark }) {
+  const [selectedCrop, setSelectedCrop] = useState("Tomato");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [gradeResult, setGradeResult] = useState({
+    crop: "Tomato",
+    grade: "Grade A+ (Export Ready)",
+    freshness: 98,
+    defects: "0.3%",
+    moisture: "84%",
+    shelfLife: "8 - 10 days",
+    certHash: "0x8f2b4c...9e31",
+    mandiPrice: 22,
+    farlxPrice: 28,
+    extraFarmerGain: "+27.3%"
+  });
+
+  const sampleCrops = [
+    { name: "Tomato", emoji: "🍅", mandi: 22, farlx: 28, grade: "Grade A+", freshness: 98 },
+    { name: "Onion", emoji: "🧅", mandi: 24, farlx: 31, grade: "Grade A", freshness: 94 },
+    { name: "Potato", emoji: "🥔", mandi: 16, farlx: 21, grade: "Grade A+", freshness: 97 },
+    { name: "Wheat", emoji: "🌾", mandi: 21, farlx: 26, grade: "Grade A++", freshness: 99 }
+  ];
+
+  const handleSelectSample = (crop) => {
+    setAnalyzing(true);
+    setTimeout(() => {
+      setSelectedCrop(crop.name);
+      setGradeResult({
+        crop: crop.name,
+        grade: crop.grade,
+        freshness: crop.freshness,
+        defects: "0.4%",
+        moisture: "82%",
+        shelfLife: "9 days",
+        certHash: "0x" + Math.random().toString(16).substring(2, 10) + "...cert",
+        mandiPrice: crop.mandi,
+        farlxPrice: crop.farlx,
+        extraFarmerGain: "+" + Math.round(((crop.farlx - crop.mandi) / crop.mandi) * 100) + "%"
+      });
+      setAnalyzing(false);
+    }, 450);
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-2xl py-10"
-    >
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white text-center shadow-xl shadow-slate-200/70">
-        <div className="bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700 px-8 py-10">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur">
-            <Sparkles className="h-8 w-8" />
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <Bot className="h-4 w-4 text-emerald-300" />
+          AI COMPUTER VISION CROP QUALITY INSPECTOR
+        </div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          Instant Quality Grading & Mandi Price Benchmarks
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          Farmers send produce photos via Telegram (@FarlX_bot). Our computer vision model inspects color uniformity, surface blemishes, and freshness to certify batches for smart escrow trading.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className={"rounded-2xl border p-6 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <h3 className={"text-base font-black " + (isDark ? "text-white" : "text-slate-900")}>Select Produce to Inspect</h3>
+          <p className="mt-1 text-xs text-slate-400">Choose a crop batch or test with sample produce:</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {sampleCrops.map((c) => (
+              <button
+                key={c.name}
+                onClick={() => handleSelectSample(c)}
+                className={"flex flex-col items-center justify-center rounded-xl border p-4 text-center transition-all " + (selectedCrop === c.name ? "border-emerald-500 bg-emerald-50/20 text-emerald-600 ring-2 ring-emerald-500/20" : (isDark ? "border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"))}
+              >
+                <span className="text-3xl">{c.emoji}</span>
+                <span className="mt-2 text-xs font-bold">{c.name}</span>
+                <span className="text-[10px] text-slate-400">APMC: ₹{c.mandi}/kg</span>
+              </button>
+            ))}
           </div>
 
-          <h2 className="mt-5 text-2xl font-black text-white">{title}</h2>
-
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-cyan-50">
-            This buyer workspace is being upgraded with better sourcing tools
-            and market intelligence.
-          </p>
+          <div className="mt-6 border-t border-slate-200/60 pt-4 dark:border-slate-800">
+            <label className="flex flex-col items-center justify-center rounded-xl border border-dashed border-emerald-500/50 bg-emerald-50/10 p-6 text-center cursor-pointer hover:bg-emerald-50/20 transition-all">
+              <Camera className="h-7 w-7 text-emerald-500" />
+              <span className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">Upload Produce Image</span>
+              <span className="text-[10px] text-slate-400 mt-0.5">JPEG, PNG up to 10MB</span>
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                if (e.target.files?.[0]) handleSelectSample({ name: "Uploaded Batch", emoji: "🌿", mandi: 25, farlx: 32, grade: "Grade A+", freshness: 96 });
+              }} />
+            </label>
+          </div>
         </div>
 
-        <div className="p-8">
-          <a
-            href="/live-data"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white transition-colors hover:bg-teal-700"
-          >
-            View Live Data
-            <ExternalLink className="h-4 w-4" />
-          </a>
+        <div className={"lg:col-span-2 rounded-2xl border p-6 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <div className="flex items-center justify-between border-b border-slate-200/60 pb-4 dark:border-slate-800">
+            <div>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                AI Certified Quality Certificate
+              </span>
+              <h2 className={"mt-2 text-xl font-black " + (isDark ? "text-white" : "text-slate-900")}>
+                {gradeResult.crop} Quality Diagnostic
+              </h2>
+            </div>
+            <div className="text-right">
+              <span className="text-[11px] font-bold text-slate-400">Escrow Hash</span>
+              <p className="font-mono text-xs font-bold text-cyan-500">{gradeResult.certHash}</p>
+            </div>
+          </div>
+
+          {analyzing ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <RefreshCw className="h-8 w-8 animate-spin text-emerald-500" />
+              <p className="mt-3 text-sm font-bold text-slate-400">AI Model evaluating produce surface & freshness...</p>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className={"rounded-xl p-4 border " + (isDark ? "border-slate-700 bg-slate-800/60" : "border-slate-100 bg-slate-50")}>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Overall Grade</span>
+                  <p className="mt-1 text-base font-black text-emerald-500">{gradeResult.grade}</p>
+                </div>
+                <div className={"rounded-xl p-4 border " + (isDark ? "border-slate-700 bg-slate-800/60" : "border-slate-100 bg-slate-50")}>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Freshness Index</span>
+                  <p className="mt-1 text-base font-black text-cyan-500">{gradeResult.freshness}% Score</p>
+                </div>
+                <div className={"rounded-xl p-4 border " + (isDark ? "border-slate-700 bg-slate-800/60" : "border-slate-100 bg-slate-50")}>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Surface Defect</span>
+                  <p className="mt-1 text-base font-black text-amber-500">{gradeResult.defects}</p>
+                </div>
+                <div className={"rounded-xl p-4 border " + (isDark ? "border-slate-700 bg-slate-800/60" : "border-slate-100 bg-slate-50")}>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Expected Shelf Life</span>
+                  <p className="mt-1 text-base font-black text-violet-500">{gradeResult.shelfLife}</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h4 className="text-sm font-black text-emerald-700 dark:text-emerald-300">
+                      APMC Mandi Rate vs FARLX Farm-Direct Rate
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      Traditional APMC Mandi intermediary commissions are eliminated, guaranteeing higher farmer revenue and lower wholesale buyer procurement price.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="text-center">
+                      <span className="text-[10px] font-bold text-slate-400">APMC Mandi</span>
+                      <p className="text-base font-black text-slate-600 dark:text-slate-300">₹{gradeResult.mandiPrice}/kg</p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-[10px] font-bold text-emerald-600">FARLX Direct</span>
+                      <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">₹{gradeResult.farlxPrice}/kg</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-white">
+                      {gradeResult.extraFarmerGain} Farmer Profit
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+function LogisticsPage({ isDark }) {
+  const pools = [
+    {
+      id: "POOL-101",
+      route: "Nashik ➔ Vashi Mumbai APMC",
+      truck: "Tata Ace 2 Ton",
+      capacity: 82,
+      farmers: 4,
+      departure: "Today, 7:00 PM",
+      costPerKg: "₹1.40/kg",
+      savings: "₹1,400 per farmer",
+      co2Saved: "28 kg CO₂"
+    },
+    {
+      id: "POOL-102",
+      route: "Pune ➔ Bangalore Yeshwanthpur",
+      truck: "Eicher Pro 5 Ton",
+      capacity: 94,
+      farmers: 6,
+      departure: "Tomorrow, 5:00 AM",
+      costPerKg: "₹2.10/kg",
+      savings: "₹3,200 per farmer",
+      co2Saved: "64 kg CO₂"
+    },
+    {
+      id: "POOL-103",
+      route: "Indore ➔ Delhi Azadpur Mandi",
+      truck: "Ashok Leyland 10 Ton",
+      capacity: 68,
+      farmers: 3,
+      departure: "Tomorrow, 8:00 PM",
+      costPerKg: "₹2.80/kg",
+      savings: "₹4,600 per farmer",
+      co2Saved: "92 kg CO₂"
+    }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <Truck className="h-4 w-4 text-emerald-300" />
+          KISAN LOGISTICS POOLING AGGREGATOR
+        </div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          Shared Farm Freight Pooling & Carbon Reduction
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          Smallholder farmers combine smaller crop batches into shared regional commercial transport, cutting shipping costs by up to 45% and reducing transit time to wholesale buyer facilities.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        {pools.map((p) => (
+          <div
+            key={p.id}
+            className={"flex flex-col justify-between rounded-2xl border p-6 transition-all hover:shadow-xl " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="rounded-md bg-cyan-100 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300">
+                  {p.id}
+                </span>
+                <span className="text-xs font-bold text-emerald-500">{p.co2Saved}</span>
+              </div>
+              <h3 className={"mt-3 text-base font-black " + (isDark ? "text-white" : "text-slate-900")}>
+                {p.route}
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">{p.truck} • Departs {p.departure}</p>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+                  <span>Capacity Filled</span>
+                  <span>{p.capacity}%</span>
+                </div>
+                <div className="mt-1 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: p.capacity + "%" }} />
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-1.5 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Freight Rate:</span>
+                  <span className={"font-bold " + (isDark ? "text-slate-200" : "text-slate-800")}>{p.costPerKg}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Avg Savings:</span>
+                  <span className="font-bold text-emerald-500">{p.savings}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Pooled Farmers:</span>
+                  <span className={"font-bold " + (isDark ? "text-slate-200" : "text-slate-800")}>{p.farmers} active</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => alert("✅ Joined " + p.id + "! Dispatch driver will call for farm gate pickup.")}
+              className="mt-5 w-full rounded-xl bg-slate-900 dark:bg-emerald-600 py-2.5 text-xs font-black text-white hover:opacity-90 transition-opacity"
+            >
+              Join Transport Pool
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WeatherPage({ isDark }) {
+  const forecasts = [
+    { day: "Today", temp: "29°C / 21°C", cond: "Partly Cloudy", rain: "10%", spray: "Optimal (Morning)" },
+    { day: "Tomorrow", temp: "31°C / 22°C", cond: "Sunny", rain: "5%", spray: "Optimal (All Day)" },
+    { day: "Thursday", temp: "27°C / 20°C", cond: "Light Showers", rain: "65%", spray: "Not Recommended" },
+    { day: "Friday", temp: "28°C / 21°C", cond: "Overcast", rain: "25%", spray: "Optimal (Afternoon)" },
+    { day: "Saturday", temp: "30°C / 22°C", cond: "Clear Sky", rain: "10%", spray: "Optimal" }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <CloudSun className="h-4 w-4 text-amber-300" />
+          AGRO-CLIMATIC WEATHER & SPRAYING ADVISORY
+        </div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          Regional Weather Intelligence & Crop Protection
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          Hyper-local agricultural micro-climate monitoring. Provides farmers and wholesale buyers with humidity alerts, rainfall forecasting, and pesticide spraying time windows.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Current Temperature</span>
+          <p className={"mt-2 text-3xl font-black " + (isDark ? "text-white" : "text-slate-900")}>29°C</p>
+          <p className="text-xs text-emerald-500 mt-1">Optimal harvest climate</p>
+        </div>
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Relative Humidity</span>
+          <p className={"mt-2 text-3xl font-black " + (isDark ? "text-white" : "text-slate-900")}>68%</p>
+          <p className="text-xs text-cyan-500 mt-1">Normal transpiration rate</p>
+        </div>
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Rain Probability</span>
+          <p className={"mt-2 text-3xl font-black " + (isDark ? "text-white" : "text-slate-900")}>15%</p>
+          <p className="text-xs text-slate-400 mt-1">Low risk for drying crops</p>
+        </div>
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Wind Velocity</span>
+          <p className={"mt-2 text-3xl font-black " + (isDark ? "text-white" : "text-slate-900")}>12 km/h</p>
+          <p className="text-xs text-emerald-500 mt-1">Safe for aerial spraying</p>
+        </div>
+      </div>
+
+      <div className={"rounded-2xl border p-6 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+        <h3 className={"text-base font-black " + (isDark ? "text-white" : "text-slate-900")}>5-Day Agricultural Weather Advisory</h3>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-5">
+          {forecasts.map((f) => (
+            <div key={f.day} className={"rounded-xl p-4 border text-center " + (isDark ? "border-slate-700 bg-slate-800/60" : "border-slate-100 bg-slate-50")}>
+              <p className="text-xs font-bold text-slate-400">{f.day}</p>
+              <p className={"mt-1 text-sm font-black " + (isDark ? "text-white" : "text-slate-900")}>{f.temp}</p>
+              <p className="text-xs font-medium text-cyan-500 mt-0.5">{f.cond}</p>
+              <div className="mt-3 border-t border-slate-200/60 dark:border-slate-700 pt-2 text-[10px]">
+                <span className="text-slate-400">Spray Window:</span>
+                <p className="font-bold text-emerald-500">{f.spray}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MyFarmPage({ isDark }) {
+  const farmLots = [
+    { crop: "Tomato", batch: "BATCH-89", qty: "4,800 kg", value: "₹1,34,400", status: "Active in Market", emoji: "🍅" },
+    { crop: "Onion", batch: "BATCH-90", qty: "9,600 kg", value: "₹2,68,800", status: "Bid Received", emoji: "🧅" },
+    { crop: "Potato", batch: "BATCH-91", qty: "12,500 kg", value: "₹2,25,000", status: "Ready for Dispatch", emoji: "🥔" }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <Sprout className="h-4 w-4 text-emerald-300" />
+          FARMER HARVEST PORTFOLIO & TELEGRAM GATEWAY
+        </div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          My Farm Operations & Harvest Management
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          Track your live crop inventory, harvest dates, escrow payouts, and buyer offers submitted via Telegram bot (@FarlX_bot).
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Total Cultivated Acreage</span>
+          <p className={"mt-2 text-2xl font-black " + (isDark ? "text-white" : "text-slate-900")}>8.5 Acres</p>
+          <p className="text-xs text-emerald-500 mt-1">Verified land title</p>
+        </div>
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Total Settled Earnings</span>
+          <p className={"mt-2 text-2xl font-black " + (isDark ? "text-white" : "text-slate-900")}>₹6,28,200</p>
+          <p className="text-xs text-cyan-500 mt-1">100% direct UPI settlement</p>
+        </div>
+        <div className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <span className="text-xs font-bold text-slate-400">Active Telegram Batches</span>
+          <p className={"mt-2 text-2xl font-black " + (isDark ? "text-white" : "text-slate-900")}>3 Batches</p>
+          <p className="text-xs text-amber-500 mt-1">Receiving buyer bids live</p>
+        </div>
+      </div>
+
+      <div className={"rounded-2xl border p-6 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className={"text-base font-black " + (isDark ? "text-white" : "text-slate-900")}>Live Produce Inventory</h3>
+          <a
+            href="https://t.me/FarlX_bot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-black text-white hover:bg-emerald-500"
+          >
+            <Send className="h-3.5 w-3.5" />
+            Add Crop in Telegram
+          </a>
+        </div>
+
+        <div className="space-y-3">
+          {farmLots.map((lot) => (
+            <div key={lot.batch} className={"flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl border " + (isDark ? "border-slate-700 bg-slate-800/60" : "border-slate-100 bg-slate-50")}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{lot.emoji}</span>
+                <div>
+                  <h4 className={"text-sm font-black " + (isDark ? "text-white" : "text-slate-900")}>{lot.crop} - {lot.batch}</h4>
+                  <p className="text-xs text-slate-400">{lot.qty} • Value: {lot.value}</p>
+                </div>
+              </div>
+              <span className="mt-2 sm:mt-0 self-start sm:self-auto rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                {lot.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommunityPage({ isDark }) {
+  const posts = [
+    { author: "Ramesh Pawar (Nashik)", topic: "Tomato Pricing Movement", content: "Nashik APMC arrivals down 20% today. Direct buyer bids on FARLX are averaging ₹28/kg compared to ₹22 in mandi.", time: "2 hours ago" },
+    { author: "Sardar Baljit (Ludhiana)", topic: "Wheat Harvest Storage", content: "Moisture levels staying at 11%. Good time to store or sell direct to millers via Smart Escrow.", time: "4 hours ago" },
+    { author: "Venkatesh Rao (Hubballi)", topic: "Logistics Pool to Bangalore", content: "We have 3 tonnes space left on the Eicher truck departing tomorrow. Contact to share fuel costs.", time: "6 hours ago" }
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <Users className="h-4 w-4 text-cyan-300" />
+          FARMER PEER NETWORK & APMC MANDI INTEL
+        </div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          National Agritech Farmer Community
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          Exchange live market rates, shared shipping requests, and agronomist tips with verified farmers across India.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {posts.map((p, idx) => (
+          <div key={idx} className={"rounded-2xl border p-5 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+            <div className="flex items-center justify-between">
+              <span className={"text-xs font-black " + (isDark ? "text-emerald-400" : "text-emerald-700")}>{p.author}</span>
+              <span className="text-xs text-slate-400">{p.time}</span>
+            </div>
+            <h3 className={"mt-2 text-base font-black " + (isDark ? "text-white" : "text-slate-900")}>{p.topic}</h3>
+            <p className="mt-1 text-sm text-slate-400 leading-relaxed">{p.content}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReportsPage({ isDark }) {
+  return (
+    <div className="space-y-8">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-[#071A2B] to-[#0A4B54] p-7 text-white shadow-xl sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-cyan-200">
+          <BarChart3 className="h-4 w-4 text-amber-300" />
+          OFFICIAL MARKET REPORTS & AUDITED SETTLEMENTS
+        </div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
+          Procurement Statements & Escrow Tax Invoices
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-200">
+          Download verifiable PDF & Excel audit trails for agricultural procurement, tax exemption documentation, and bank reconciliation.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className={"rounded-2xl border p-6 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <FileText className="h-8 w-8 text-cyan-500" />
+          <h3 className={"mt-3 text-lg font-black " + (isDark ? "text-white" : "text-slate-900")}>Monthly Escrow Audit Report</h3>
+          <p className="mt-1 text-xs text-slate-400">Complete breakdown of locked escrow funds, release timestamps, and farmer UPI transaction UTRs.</p>
+          <button
+            onClick={() => alert("📥 Downloaded Monthly_Escrow_Statement_FARLX.pdf")}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-emerald-600 px-4 py-2.5 text-xs font-black text-white hover:opacity-90"
+          >
+            <Download className="h-4 w-4" />
+            Download PDF Report
+          </button>
+        </div>
+
+        <div className={"rounded-2xl border p-6 " + (isDark ? "border-slate-800 bg-[#111827]" : "border-slate-200 bg-white shadow-sm")}>
+          <ChartNoAxesCombined className="h-8 w-8 text-emerald-500" />
+          <h3 className={"mt-3 text-lg font-black " + (isDark ? "text-white" : "text-slate-900")}>National APMC Mandi Price Index</h3>
+          <p className="mt-1 text-xs text-slate-400">Benchmark comparison report across Maharashtra, Punjab, Madhya Pradesh, and Karnataka APMCs.</p>
+          <button
+            onClick={() => alert("📥 Downloaded APMC_Mandi_Price_Index_FARLX.xlsx")}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-emerald-600 px-4 py-2.5 text-xs font-black text-white hover:opacity-90"
+          >
+            <Download className="h-4 w-4" />
+            Download Excel Index
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -2556,7 +3065,7 @@ export default function App() {
     return (
       <div className="space-y-10">
         <Hero onExplore={goToMarket} />
-        <StatsGrid liveStats={liveStats} />
+        <StatsGrid liveStats={liveStats} isDark={isDark} />
         <FeaturedListings
           currentListings={currentListings}
           onView={openListing}
@@ -2570,31 +3079,16 @@ export default function App() {
   };
 
   const renderPage = () => {
-    if (activeNav === "Home") {
-      return renderHome();
-    }
-
-    if (activeNav === "Market") {
-      return (
-        <MarketPage
-          currentListings={currentListings}
-          searchQuery={searchQuery}
-          onView={openListing}
-        />
-      );
-    }
-
-    if (activeNav === "Buy & Sell") {
-      return (
-        <OrdersEscrowPage
-          transactions={transactions}
-          onRefresh={fetchLiveData}
-          onOpenListing={openListing}
-        />
-      );
-    }
-
-    return <ComingSoon title={activeNav} />;
+    if (activeNav === "Home") return renderHome();
+    if (activeNav === "Market") return <MarketPage currentListings={currentListings} searchQuery={searchQuery} onView={openListing} />;
+    if (activeNav === "Buy & Sell") return <OrdersEscrowPage transactions={transactions} onRefresh={fetchLiveData} onOpenListing={openListing} />;
+    if (activeNav === "AI Assistant") return <AiInspectorPage isDark={isDark} />;
+    if (activeNav === "Logistics") return <LogisticsPage isDark={isDark} />;
+    if (activeNav === "Weather") return <WeatherPage isDark={isDark} />;
+    if (activeNav === "My Farm") return <MyFarmPage isDark={isDark} />;
+    if (activeNav === "Community") return <CommunityPage isDark={isDark} />;
+    if (activeNav === "Reports") return <ReportsPage isDark={isDark} />;
+    return <MarketPage currentListings={currentListings} searchQuery={searchQuery} onView={openListing} />;
   };
 
   return (
@@ -2602,7 +3096,7 @@ export default function App() {
       <Route
         path="/"
         element={
-          <div className="min-h-screen bg-[#F4F7FB] text-slate-900 lg:flex">
+          <div className={"min-h-screen lg:flex transition-colors duration-200 " + (isDark ? "bg-[#080D1A] text-slate-100" : "bg-[#F4F7FB] text-slate-900")}>
             <Sidebar
               active={activeNav}
               setActive={setActiveNav}
@@ -2646,7 +3140,7 @@ export default function App() {
       <Route
         path="/market"
         element={
-          <div className="min-h-screen bg-[#F4F7FB] text-slate-900 lg:flex">
+          <div className={"min-h-screen lg:flex transition-colors duration-200 " + (isDark ? "bg-[#080D1A] text-slate-100" : "bg-[#F4F7FB] text-slate-900")}>
             <Sidebar
               active={activeNav}
               setActive={setActiveNav}

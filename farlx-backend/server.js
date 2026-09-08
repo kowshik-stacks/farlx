@@ -1261,7 +1261,7 @@ app.post("/api/notifications/read-all", async (req, res) => {
   }
 });
 
-// Demo seed for SIH judges / quick testing
+// Demo seed for platform demonstration / quick testing
 app.post("/api/demo-seed", async (req, res) => {
   try {
     const fRes = await pool.query(
