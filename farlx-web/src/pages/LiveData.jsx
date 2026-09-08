@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Database, Send, Zap, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "https://farlx-backend.onrender.com";
 const API = `${API_BASE}/api`;
 
 export default function LiveData() {

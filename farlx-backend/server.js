@@ -1240,6 +1240,13 @@ app.post("/api/transactions/:id/confirm-delivery", async (req, res) => {
   }
 });
 
+// Alias for escrow payment release
+app.post("/api/transactions/:id/release", async (req, res, next) => {
+  // Delegate directly to confirm-delivery
+  req.url = `/api/transactions/${req.params.id}/confirm-delivery`;
+  app._router.handle(req, res, next);
+});
+
 // Notifications
 app.get("/api/notifications", async (req, res) => {
   try {

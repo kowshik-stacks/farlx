@@ -90,7 +90,7 @@ import LiveData from "./pages/LiveData";
 import { translations } from "./translations";
 
 
-const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const API_BASE = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ? import.meta.env.VITE_API_URL.replace(/\/$/, "") : "https://farlx-backend.onrender.com";
 
 function normalizeListing(raw, idx = 0) {
   const cropEmojis = {
@@ -107,7 +107,11 @@ function normalizeListing(raw, idx = 0) {
     banana: "🍌",
     grapes: "🍇",
     mango: "🥭",
-    watermelon: "🍉"
+    watermelon: "🍉",
+    wheat: "🌾",
+    rice: "🍚",
+    cotton: "🌱",
+    sugarcane: "🎋"
   };
 
   const cropKey = (raw.crop || "").toLowerCase().trim();
@@ -124,6 +128,7 @@ function normalizeListing(raw, idx = 0) {
 
   const qty = Number(raw.quantity) || 100;
   const prc = Number(raw.price_per_kg || raw.price || 30);
+  const isSold = raw.status === "sold";
 
   return {
     id: raw.id,
@@ -138,7 +143,7 @@ function normalizeListing(raw, idx = 0) {
     quantity: `${qty.toFixed(0)} kg`,
     quantityNumber: qty,
     delivery: raw.harvest_time || raw.delivery || "Ready Now",
-    badge: raw.status === "sold" ? "Sold Out" : "Live Telegram Supply",
+    badge: isSold ? "Sold / In Escrow" : "Live Telegram Supply",
     status: raw.status || "active",
     bidCount: Number(raw.bid_count || 0),
     matching: 96,
@@ -149,10 +154,10 @@ function normalizeListing(raw, idx = 0) {
     acceptingRate: 98,
     joined: "2024",
     telegram: "@FarlX_bot",
-    description: raw.description || `Fresh, farm-graded ${raw.crop} harvested directly by farmer. Available for direct bulk procurement via FARLX Smart Escrow with instant UPI settlement upon delivery.`,
+    description: raw.description || `Fresh, farm-graded ${raw.crop} harvested directly by farmer ${raw.farmer_name || 'Kowshik'}. Verified direct farm-gate supply for Smart Escrow procurement with instant UPI payout.`,
     gradient: g.gradient,
     softGradient: g.softGradient,
-    category: ["Tomato", "Onion", "Potato", "Chilli", "Cucumber", "Brinjal", "Carrot"].includes(raw.crop) ? "Vegetables" : "Grains & Fruits"
+    category: ["tomato", "onion", "potato", "chilli", "cucumber", "brinjal", "carrot"].includes(cropKey) ? "Vegetables" : "Grains & Fruits"
   };
 }
 
@@ -1336,7 +1341,14 @@ function ListingCard({ listing, onView, compact = false, isDark = false, lang = 
 
 function FeaturedListings({ currentListings, onView, onExplore, isDark = false, lang = "en" }) {
   const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
-  const displayListings = (currentListings && currentListings.length > 0) ? currentListings : listings;
+  const displayListings = useMemo(() => {
+    const base = (currentListings && currentListings.length > 0) ? currentListings : listings;
+    return [...base].sort((a, b) => {
+      if (a.status === "active" && b.status !== "active") return -1;
+      if (a.status !== "active" && b.status === "active") return 1;
+      return (b.id || 0) - (a.id || 0);
+    });
+  }, [currentListings]);
 
   return (
     <motion.section
@@ -2234,27 +2246,33 @@ function OrdersEscrowPage({ transactions, onRefresh, onOpenListing, isDark = fal
   const [releasingId, setReleasingId] = useState(null);
   const [selectedSettlement, setSelectedSettlement] = useState(null);
 
-  const handleConfirmDelivery = async (txn) => {
-    if (!confirm("Confirm delivery of " + txn.crop + "? Payment will release immediately to farmer UPI " + txn.farmer_upi)) return;
+    const handleConfirmDelivery = async (txn) => {
+    if (!confirm("Confirm delivery of " + txn.crop + "? Payment of ₹" + Number(txn.total_amount).toLocaleString('en-IN') + " will release immediately to farmer UPI (" + txn.farmer_upi + ")")) return;
     setReleasingId(txn.id);
 
     try {
-      const res = await fetch(`${API_BASE}/api/transactions/${txn.id}/release`, {
-        method: "POST"
+      // Call live backend endpoint
+      const res = await fetch(`${API_BASE}/api/transactions/${txn.id}/confirm-delivery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to release payment");
 
+      const upiDetails = data.upi || {};
       setSelectedSettlement({
         id: txn.id,
-        farmerName: txn.farmer_name,
-        farmerUpi: txn.farmer_upi,
-        amount: txn.total_amount,
+        crop: txn.crop,
+        farmerName: data.transaction?.farmer_name || txn.farmer_name || "Farmer",
+        farmerUpi: upiDetails.vpa || txn.farmer_upi || "farmer@upi",
+        amount: upiDetails.amount || txn.total_amount,
+        upiUri: upiDetails.upiUri || `upi://pay?pa=${encodeURIComponent(txn.farmer_upi || 'farmer@upi')}&pn=${encodeURIComponent(txn.farmer_name || 'Farmer')}&am=${txn.total_amount}&cu=INR&tn=FARLX+Order+${txn.id}`,
+        qrCodeUrl: upiDetails.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(`upi://pay?pa=${encodeURIComponent(txn.farmer_upi || 'farmer@upi')}&pn=${encodeURIComponent(txn.farmer_name || 'Farmer')}&am=${txn.total_amount}&cu=INR&tn=FARLX+Order+${txn.id}`)}`,
         txnRef: data.transaction?.escrow_hash || "UTR-" + Math.floor(1000000000 + Math.random() * 9000000000)
       });
       if (onRefresh) onRefresh();
     } catch (err) {
-      alert("Error releasing escrow: " + err.message);
+      alert("Error confirming delivery & payment: " + err.message);
     } finally {
       setReleasingId(null);
     }
@@ -2394,49 +2412,77 @@ function UpiSettlementModal({ settlement, onClose, isDark = false, lang = "en" }
   const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   if (!settlement) return null;
 
+  const upiLink = settlement.upiUri || `upi://pay?pa=${encodeURIComponent(settlement.farmerUpi)}&pn=${encodeURIComponent(settlement.farmerName)}&am=${settlement.amount}&cu=INR&tn=FARLX+Order+${settlement.id}`;
+  const qrUrl = settlement.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiLink)}`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
       <div className={"w-full max-w-md rounded-2xl border p-6 shadow-2xl " + (isDark ? "bg-[#111C32] border-slate-800 text-white" : "bg-white border-slate-200 text-slate-900")}>
         <div className="flex items-center justify-between border-b pb-4 dark:border-slate-800">
-          <h3 className="text-lg font-black">{t("upiModalTitle", "Direct UPI Payout Release")}</h3>
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-500">
+              <CheckCircle2 className="h-5 w-5" />
+            </span>
+            <h3 className="text-lg font-black">{t("upiModalTitle", "Direct UPI Payout Release")}</h3>
+          </div>
           <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:text-white">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="mt-4 text-center">
-          <p className={"text-xs " + (isDark ? "text-slate-400" : "text-slate-500")}>
+          <p className={"text-xs leading-relaxed " + (isDark ? "text-slate-300" : "text-slate-600")}>
             {t("upiModalDesc", "Produce delivered and inspected. Payment has been released directly from Escrow to the farmer's bank account.")}
           </p>
 
           <div className="mt-5 flex justify-center">
-            <div className="rounded-2xl border border-dashed border-emerald-500/50 bg-emerald-500/5 p-4">
-              <QrCode className="h-36 w-36 text-emerald-500 mx-auto" />
-              <p className="mt-2 font-mono text-xs font-bold text-emerald-500">{settlement.farmerUpi}</p>
+            <div className="rounded-2xl border-2 border-dashed border-emerald-500/50 bg-white p-4 shadow-sm">
+              <img
+                src={qrUrl}
+                alt="UPI QR Code"
+                className="h-44 w-44 mx-auto rounded-lg"
+              />
+              <p className="mt-2 font-mono text-xs font-bold text-slate-800">{settlement.farmerUpi}</p>
             </div>
           </div>
 
-          <div className={"mt-4 rounded-xl p-3 text-xs " + (isDark ? "bg-slate-900" : "bg-slate-50")}>
+          <div className={"mt-4 rounded-xl p-3.5 text-xs text-left " + (isDark ? "bg-slate-900 border border-slate-800" : "bg-slate-50 border border-slate-100")}>
             <div className="flex justify-between py-1">
               <span className="text-slate-400">Order Ref:</span>
-              <span className="font-bold">#TXN-{settlement.id}</span>
+              <span className="font-bold">#TXN-{settlement.id} {settlement.crop ? `(${settlement.crop})` : ""}</span>
             </div>
             <div className="flex justify-between py-1">
               <span className="text-slate-400">Farmer:</span>
               <span className="font-bold">{settlement.farmerName}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-400">Released Amount:</span>
-              <span className="font-black text-emerald-500">₹{Number(settlement.amount || 0).toLocaleString('en-IN')}</span>
+              <span className="text-slate-400">Escrow UTR / Ref:</span>
+              <span className="font-mono font-bold text-cyan-400 text-[11px] truncate max-w-[200px]">{settlement.txnRef}</span>
+            </div>
+            <div className="flex justify-between py-1 border-t border-slate-200/50 dark:border-slate-800 mt-1 pt-1.5">
+              <span className="text-slate-400 font-bold">Released Amount:</span>
+              <span className="font-black text-emerald-500 text-sm">₹{Number(settlement.amount || 0).toLocaleString("en-IN")}</span>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="mt-6 w-full rounded-xl bg-emerald-600 py-3 text-xs font-black text-white hover:bg-emerald-500"
-          >
-            {t("closeBtn", "Close")}
-          </button>
+          <div className="mt-5 flex flex-col gap-2.5">
+            <a
+              href={upiLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 text-xs font-black text-white shadow-md hover:opacity-95"
+            >
+              <Smartphone className="h-4 w-4" />
+              {t("openUpiAppBtn", "Pay / Open in UPI App")}
+            </a>
+
+            <button
+              onClick={onClose}
+              className={"w-full rounded-xl py-2.5 text-xs font-bold transition-colors " + (isDark ? "bg-slate-800 text-slate-300 hover:bg-slate-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200")}
+            >
+              {t("closeBtn", "Close")}
+            </button>
+          </div>
         </div>
       </div>
     </div>
