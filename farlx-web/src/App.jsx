@@ -15,7 +15,6 @@ import {
   ChevronRight,
   ExternalLink,
   X,
-  Sparkles,
   MapPin,
   Award,
   IndianRupee,
@@ -41,27 +40,30 @@ import { translations, languages } from "./translations";
 
 const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
 
-function normalizeListing(raw, idx = 0) {
-  const cropEmojis = {
-    tomato: "🍅",
-    onion: "🧅",
-    paddy: "🌾",
-    rice: "🍚",
-    potato: "🥔",
-    chilli: "🌶️",
-    groundnut: "🥜",
-    maize: "🌽",
-    cucumber: "🥒",
-    brinjal: "🍆",
-    carrot: "🥕",
-    banana: "🍌",
-    grapes: "🍇",
-    mango: "🥭",
-    watermelon: "🍉"
-  };
+// Realistic high-resolution photography for crops (replacing cartoon emojis)
+const CROP_PHOTOS = {
+  tomato: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=700&auto=format&fit=crop&q=80",
+  onion: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=700&auto=format&fit=crop&q=80",
+  potato: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=700&auto=format&fit=crop&q=80",
+  paddy: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=700&auto=format&fit=crop&q=80",
+  rice: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=700&auto=format&fit=crop&q=80",
+  chilli: "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=700&auto=format&fit=crop&q=80",
+  cucumber: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?w=700&auto=format&fit=crop&q=80",
+  carrot: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=700&auto=format&fit=crop&q=80",
+  maize: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=700&auto=format&fit=crop&q=80",
+  default: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=700&auto=format&fit=crop&q=80"
+};
 
-  const key = (raw.crop || "").toLowerCase().trim();
-  const emoji = cropEmojis[key] || "🌿";
+function getCropPhoto(cropName) {
+  const key = (cropName || "").toLowerCase().trim();
+  for (const [k, url] of Object.entries(CROP_PHOTOS)) {
+    if (key.includes(k)) return url;
+  }
+  return CROP_PHOTOS.default;
+}
+
+function normalizeListing(raw, idx = 0) {
+  const photo = getCropPhoto(raw.crop);
   const qty = Number(raw.quantity || 100);
 
   return {
@@ -76,20 +78,20 @@ function normalizeListing(raw, idx = 0) {
     quality: raw.ai_grade || raw.quality || "Grade A+",
     freshnessScore: Number(raw.freshness_score || 95.5),
     certHash: raw.certificate_hash || "FARLX-CERT-A1",
-    image: emoji,
+    photoUrl: photo,
     quantity: `${qty >= 1000 ? (qty / 1000).toFixed(1) + " tonnes" : qty + " kg"}`,
     quantityNumber: qty,
     delivery: raw.harvest_time || "Ready Now",
     status: raw.status || "active",
     bidCount: Number(raw.bid_count || 0),
-    badge: raw.status === "sold" ? "Sold in Escrow" : "Live Batch",
+    badge: raw.status === "sold" ? "Sold in Escrow" : "Active Batch",
     matching: 96,
     rating: 4.9,
     orders: 142,
     deliveryRate: 99,
     telegram: "@FarlX_bot",
     description: raw.description || `Farm-fresh ${raw.crop} harvested directly by farmer. Certified Grade A+ produce available for direct bulk procurement with FARLX Smart Escrow and instant UPI settlement.`,
-    category: ["Tomato", "Onion", "Potato", "Chilli", "Cucumber", "Brinjal", "Carrot"].includes(raw.crop) ? "Vegetables" : "Fruits & Grains"
+    category: ["Tomato", "Onion", "Potato", "Chilli", "Cucumber", "Brinjal", "Carrot"].includes(raw.crop) ? "Vegetables" : "Grains & Fruits"
   };
 }
 
@@ -103,7 +105,7 @@ const sampleListings = [
     quality: "Grade A+",
     freshnessScore: 96.5,
     certHash: "FARLX-NSK-9921",
-    image: "🍅",
+    photoUrl: CROP_PHOTOS.tomato,
     quantity: "500 kg",
     quantityNumber: 500,
     delivery: "Ready Now",
@@ -125,7 +127,7 @@ const sampleListings = [
     quality: "Grade A",
     freshnessScore: 94.0,
     certHash: "FARLX-LSG-4812",
-    image: "🧅",
+    photoUrl: CROP_PHOTOS.onion,
     quantity: "1.2 tonnes",
     quantityNumber: 1200,
     delivery: "Dispatch in 24h",
@@ -147,7 +149,7 @@ const sampleListings = [
     quality: "Grade A+",
     freshnessScore: 95.2,
     certHash: "FARLX-IDR-3310",
-    image: "🥔",
+    photoUrl: CROP_PHOTOS.potato,
     quantity: "2.5 tonnes",
     quantityNumber: 2500,
     delivery: "Ready Now",
@@ -162,16 +164,16 @@ const sampleListings = [
   }
 ];
 
-// ----------------- SIDEBAR -----------------
+// ----------------- SIDEBAR (CLEAN, STARTUP AESTHETIC) -----------------
 
 function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onToggleTheme }) {
   const navItems = [
     { label: t.navHome, id: "Home", icon: Home },
     { label: t.navMarket, id: "Market", icon: TrendingUp },
     { label: t.navBuySell, id: "Buy & Sell", icon: ShoppingBag, badge: "ESCROW" },
-    { label: t.navAiAssistant, id: "AI Inspector", icon: Bot, badge: "AI" },
+    { label: t.navAiAssistant, id: "AI Inspector", icon: Bot },
     { label: t.navWeather, id: "Mandi Advisor", icon: BarChart3 },
-    { label: t.navLogistics, id: "Logistics Pool", icon: Truck, badge: "POOL" },
+    { label: t.navLogistics, id: "Logistics Pool", icon: Truck },
     { label: t.navMyFarm, id: "My Farm", icon: Sprout }
   ];
 
@@ -179,36 +181,31 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
     <>
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-60 flex-col transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${
           theme === "dark"
-            ? "bg-[#0B0F19] border-r border-slate-800 text-slate-100"
-            : "bg-white border-r border-slate-200 text-slate-900"
+            ? "bg-[#0C1017] border-r border-slate-800 text-slate-100"
+            : "bg-white border-r border-slate-200/80 text-slate-900"
         }`}
       >
-        {/* Brand */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800/80">
+        {/* Brand without any SIH badge */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-lg text-white font-bold shadow-sm">
-              🌾
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-black text-sm tracking-tighter">
+              FX
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
-                  FARLX
-                </span>
-                <span className="rounded bg-emerald-100 dark:bg-emerald-950/80 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800 dark:text-emerald-400">
-                  SIH
-                </span>
-              </div>
-              <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500">Agri Direct Escrow</p>
+              <span className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                Farlx
+              </span>
+              <p className="text-[10px] font-medium text-slate-400 leading-none">Agri Exchange</p>
             </div>
           </div>
           <button
@@ -219,8 +216,8 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
           </button>
         </div>
 
-        {/* Navigation list */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        {/* Navigation items */}
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-3">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isSelected = active === item.id;
@@ -232,24 +229,24 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
                   setActive(item.id);
                   setMobileOpen(false);
                 }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
                   isSelected
-                    ? "bg-emerald-600 text-white shadow-sm"
+                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
                     : theme === "dark"
-                    ? "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                    ? "text-slate-400 hover:bg-slate-850 hover:text-white"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Icon className={`h-4 w-4 ${isSelected ? "text-white" : "text-slate-400 dark:text-slate-500"}`} />
+                  <Icon className={`h-4 w-4 ${isSelected ? "text-white dark:text-slate-900" : "text-slate-400"}`} />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
-                    className={`rounded px-1.5 py-0.2 text-[9px] font-bold uppercase ${
+                    className={`rounded px-1 py-0.2 text-[9px] font-bold uppercase ${
                       isSelected
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                        ? "bg-white/20 dark:bg-slate-900/20 text-white dark:text-slate-900"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500"
                     }`}
                   >
                     {item.badge}
@@ -261,48 +258,45 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
         </nav>
 
         {/* Bottom controls */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
           {/* Theme switcher */}
-          <div className="flex items-center justify-between rounded-xl bg-slate-100 dark:bg-slate-800/60 p-1 text-xs font-medium">
+          <div className="flex items-center justify-between rounded-lg bg-slate-100 dark:bg-slate-850 p-0.5 text-xs font-medium">
             <button
               onClick={() => onToggleTheme("light")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1 transition-all ${
                 theme === "light"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Sun className="h-3.5 w-3.5 text-amber-500" />
+              <Sun className="h-3 w-3 text-amber-500" />
               <span>Light</span>
             </button>
             <button
               onClick={() => onToggleTheme("dark")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1 transition-all ${
                 theme === "dark"
                   ? "bg-slate-900 text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
-              <Moon className="h-3.5 w-3.5 text-indigo-400" />
+              <Moon className="h-3 w-3 text-indigo-400" />
               <span>Dark</span>
             </button>
           </div>
 
-          {/* Telegram bot status link */}
+          {/* Bot link */}
           <a
             href="https://t.me/FarlX_bot"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-base">🤖</span>
-              <div>
-                <p className="font-bold text-slate-900 dark:text-white leading-none">@FarlX_bot</p>
-                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">Telegram Bot Active</p>
-              </div>
+              <span className="text-sm">🤖</span>
+              <span className="font-semibold text-slate-900 dark:text-white text-xs">@FarlX_bot</span>
             </div>
-            <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+            <ExternalLink className="h-3 w-3 text-slate-400" />
           </a>
         </div>
       </aside>
@@ -332,23 +326,23 @@ function TopBar({
 
   return (
     <header
-      className={`sticky top-0 z-30 min-h-[64px] border-b backdrop-blur-md transition-colors ${
+      className={`sticky top-0 z-30 min-h-[58px] border-b backdrop-blur-md transition-colors ${
         theme === "dark"
-          ? "bg-[#0B0F19]/90 border-slate-800 text-white"
-          : "bg-white/90 border-slate-200/80 text-slate-900"
+          ? "bg-[#0C1017]/95 border-slate-800 text-white"
+          : "bg-white/95 border-slate-200/80 text-slate-900"
       }`}
     >
-      <div className="flex min-h-[64px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex min-h-[58px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           onClick={onMenu}
-          className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-300 lg:hidden hover:bg-slate-50 dark:hover:bg-slate-800"
+          className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 p-1.5 text-slate-600 dark:text-slate-300 lg:hidden"
         >
-          <Menu className="h-4.5 w-4.5" />
+          <Menu className="h-4 w-4" />
         </button>
 
-        {/* Clean search */}
-        <div className="hidden min-w-0 flex-1 md:block max-w-[380px]">
-          <label className="flex h-9 w-full items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/60 px-3 focus-within:border-emerald-500 focus-within:bg-white dark:focus-within:bg-slate-800">
+        {/* Clean search bar */}
+        <div className="hidden min-w-0 flex-1 md:block max-w-[340px]">
+          <label className="flex h-8.5 w-full items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 px-2.5 focus-within:border-slate-400 dark:focus-within:border-slate-600">
             <Search className="h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
@@ -360,27 +354,27 @@ function TopBar({
         </div>
 
         {/* Right side controls */}
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           {/* Quick Demo Seed */}
           {onSeedDemo && (
             <button
               onClick={onSeedDemo}
-              title="Generate demo data for testing"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs transition-colors"
+              title="Add sample farmer & crop listing"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-xs transition-colors"
             >
-              <Zap className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <Zap className="h-3 w-3 text-slate-600 dark:text-slate-300" />
               <span className="hidden sm:inline">{t.seedDemoBtn}</span>
             </button>
           )}
 
-          {/* Language Switcher Dropdown */}
+          {/* Language Switcher */}
           <div className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-xs"
             >
-              <span className="text-sm">{currentLangObj.flag}</span>
-              <span className="hidden sm:inline">{currentLangObj.label}</span>
+              <span className="text-xs">{currentLangObj.flag}</span>
+              <span className="hidden sm:inline text-xs">{currentLangObj.label}</span>
               <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
@@ -389,10 +383,10 @@ function TopBar({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
                   <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                    initial={{ opacity: 0, y: 4, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                    className="absolute right-0 top-11 z-50 w-44 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-lg"
+                    exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                    className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-lg"
                   >
                     {languages.map((l) => (
                       <button
@@ -401,17 +395,17 @@ function TopBar({
                           onSelectLang(l.code);
                           setLangOpen(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                           lang === l.code
-                            ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold"
-                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                            ? "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-bold"
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750"
                         }`}
                       >
                         <span className="flex items-center gap-2">
                           <span>{l.flag}</span>
                           <span>{l.label}</span>
                         </span>
-                        {lang === l.code && <Check className="h-3.5 w-3.5" />}
+                        {lang === l.code && <Check className="h-3 w-3" />}
                       </button>
                     ))}
                   </motion.div>
@@ -420,16 +414,16 @@ function TopBar({
             </AnimatePresence>
           </div>
 
-          {/* Theme switcher toggle */}
+          {/* Theme toggle */}
           <button
             onClick={() => onToggleTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs"
+            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-xs"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (
-              <Sun className="h-4 w-4 text-amber-400" />
+              <Sun className="h-3.5 w-3.5 text-amber-400" />
             ) : (
-              <Moon className="h-4 w-4 text-slate-600" />
+              <Moon className="h-3.5 w-3.5 text-slate-600" />
             )}
           </button>
 
@@ -437,11 +431,11 @@ function TopBar({
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs"
+              className="relative rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-xs"
             >
-              <Bell className="h-4 w-4" />
+              <Bell className="h-3.5 w-3.5" />
               {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-[9px] font-bold text-white dark:text-slate-900">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -452,49 +446,48 @@ function TopBar({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
                   <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                    initial={{ opacity: 0, y: 4, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                    className="absolute right-0 top-11 z-50 w-80 sm:w-96 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl overflow-hidden"
+                    exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                    className="absolute right-0 top-10 z-50 w-80 sm:w-96 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl overflow-hidden"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 px-4 py-3 text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <Bell className="h-3.5 w-3.5 text-emerald-600" />
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-3.5 py-2.5 text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-1.5">
                         <span className="text-xs font-bold uppercase tracking-wider">{t.notifications}</span>
                         {unreadCount > 0 && (
-                          <span className="rounded bg-rose-500/10 text-rose-600 px-1.5 py-0.2 text-[10px] font-bold">
+                          <span className="rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-1.5 py-0.2 text-[10px] font-semibold">
                             {unreadCount} {t.unread}
                           </span>
                         )}
                       </div>
                       {unreadCount > 0 && onClearNotifications && (
-                        <button onClick={onClearNotifications} className="text-[11px] font-bold text-emerald-600 hover:underline">
+                        <button onClick={onClearNotifications} className="text-[11px] font-medium text-slate-500 hover:underline">
                           {t.markAllRead}
                         </button>
                       )}
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
+                    <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
                       {notifications.length === 0 ? (
-                        <div className="p-6 text-center text-xs text-slate-400">
-                          <p className="font-semibold">{t.noNotifications}</p>
-                          <p className="mt-1">Telegram events, bids, and escrow updates will appear here.</p>
+                        <div className="p-5 text-center text-xs text-slate-400">
+                          <p className="font-medium">{t.noNotifications}</p>
+                          <p className="mt-0.5 text-[11px]">Telegram events and escrow updates will appear here.</p>
                         </div>
                       ) : (
                         notifications.slice(0, 8).map((n) => (
                           <div
                             key={n.id}
-                            className={`p-3.5 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/40 ${
-                              !n.read ? "bg-emerald-50/30 dark:bg-emerald-950/20" : ""
+                            className={`p-3 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-750 ${
+                              !n.read ? "bg-slate-50/70 dark:bg-slate-750/40 font-medium" : ""
                             }`}
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <span className="font-bold text-slate-900 dark:text-white">{n.title}</span>
+                              <span className="font-semibold text-slate-900 dark:text-white">{n.title}</span>
                               <span className="shrink-0 text-[10px] text-slate-400">
                                 {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                               </span>
                             </div>
-                            <p className="mt-1 text-slate-600 dark:text-slate-300 leading-relaxed">{n.message}</p>
+                            <p className="mt-0.5 text-slate-500 dark:text-slate-400 leading-normal">{n.message}</p>
                           </div>
                         ))
                       )}
@@ -505,13 +498,13 @@ function TopBar({
             </AnimatePresence>
           </div>
 
-          {/* User badge */}
-          <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-2.5">
+          {/* User profile */}
+          <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-2">
             <div className="hidden sm:block text-right">
-              <p className="text-xs font-bold text-slate-900 dark:text-white leading-none">Rajesh Kumar</p>
-              <p className="text-[10px] font-medium text-slate-400 mt-0.5">Wholesale Buyer</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">Rajesh Kumar</p>
+              <p className="text-[10px] text-slate-400">Buyer</p>
             </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-700 text-xs font-bold text-white">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 dark:bg-white text-[11px] font-bold text-white dark:text-slate-950">
               RK
             </div>
           </div>
@@ -521,29 +514,28 @@ function TopBar({
   );
 }
 
-// ----------------- HERO BANNER (CLEAN & MINIMALIST) -----------------
+// ----------------- HERO BANNER (CLEAN & MINIMALIST STARTUP LOOK) -----------------
 
 function HeroBanner({ onExplore, onOpenOrders, t }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 text-white p-6 sm:p-9 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-6 sm:p-8 shadow-xs">
       <div className="relative z-10 max-w-2xl">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-0.8 text-xs font-semibold text-emerald-400">
-          <Sparkles className="h-3 w-3" />
+        <div className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
           <span>{t.heroBadge}</span>
         </div>
 
-        <h1 className="mt-3.5 text-2xl sm:text-3xl font-black tracking-tight leading-snug">
+        <h1 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-snug">
           {t.heroTitle}
         </h1>
 
-        <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-300 font-normal">
+        <p className="mt-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
           {t.heroSubtitle}
         </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-2.5">
           <button
             onClick={onExplore}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 text-xs font-bold shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-4 py-2 text-xs font-semibold shadow-xs transition-colors"
           >
             <TrendingUp className="h-3.5 w-3.5" />
             <span>{t.exploreMarket}</span>
@@ -551,9 +543,9 @@ function HeroBanner({ onExplore, onOpenOrders, t }) {
 
           <button
             onClick={onOpenOrders}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 hover:bg-slate-800 text-slate-200 px-4 py-2.5 text-xs font-bold transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 px-4 py-2 text-xs font-semibold transition-colors"
           >
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
             <span>{t.openEscrow}</span>
           </button>
         </div>
@@ -562,7 +554,7 @@ function HeroBanner({ onExplore, onOpenOrders, t }) {
   );
 }
 
-// ----------------- STATS GRID (CLEAN & UNIFORM) -----------------
+// ----------------- STATS GRID (CLEAN & SUBTLE) -----------------
 
 function StatsGrid({ liveStats, t }) {
   const stats = [
@@ -593,24 +585,24 @@ function StatsGrid({ liveStats, t }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {stats.map((s, i) => {
         const Icon = s.icon;
         return (
           <div
             key={i}
-            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs"
+            className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111622] p-4 shadow-xs"
           >
             <div className="flex items-center justify-between">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                <Icon className="h-4 w-4" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <Icon className="h-3.5 w-3.5" />
               </div>
-              <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 text-[9px] font-medium text-slate-500">
                 {s.pill}
               </span>
             </div>
-            <div className="mt-3">
-              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{s.val}</div>
+            <div className="mt-2.5">
+              <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{s.val}</div>
               <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{s.title}</div>
             </div>
           </div>
@@ -620,36 +612,41 @@ function StatsGrid({ liveStats, t }) {
   );
 }
 
-// ----------------- CROP CARD (CLEAN & ELEGANT) -----------------
+// ----------------- CROP CARD WITH REALISTIC PHOTOGRAPHY -----------------
 
 function CropCard({ listing, onView, t }) {
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 shadow-xs transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
-      {/* Clean neutral image container */}
-      <div className="relative flex h-36 items-center justify-center bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800/80 p-4 text-5xl">
-        <span className="transition-transform duration-200 group-hover:scale-110 select-none">{listing.image}</span>
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111622] shadow-xs transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+      {/* Real photographic crop image container */}
+      <div className="relative h-44 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <img
+          src={listing.photoUrl}
+          alt={listing.crop}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
 
-        {/* Minimal clean badges */}
+        {/* Minimal tags overlay */}
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-          <span className="rounded-md border border-emerald-200/80 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+          <span className="rounded-md bg-black/65 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-white">
             {listing.quality}
           </span>
-          <span className="rounded-md bg-slate-900/70 dark:bg-slate-700/80 px-2 py-0.5 text-[10px] font-medium text-white">
+          <span className="rounded-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-slate-800 dark:text-slate-200">
             {listing.freshnessScore}% Fresh
           </span>
         </div>
 
-        <div className="absolute bottom-2.5 right-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-xs font-black text-slate-900 dark:text-white shadow-xs">
-          ₹{listing.price} <span className="text-[10px] font-normal text-slate-400">{t.perKg}</span>
+        <div className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/75 backdrop-blur-sm px-2 py-0.5 text-xs font-bold text-white">
+          ₹{listing.price} <span className="text-[10px] font-normal text-slate-300">{t.perKg}</span>
         </div>
       </div>
 
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
             {listing.crop}
           </h3>
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-semibold text-slate-500">
             {listing.quantity}
           </span>
         </div>
@@ -660,19 +657,19 @@ function CropCard({ listing, onView, t }) {
             <span>{listing.region}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Award className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+            <Award className="h-3 w-3 text-slate-500" />
             <span>{t.farmer}: <strong className="text-slate-800 dark:text-slate-200">{listing.farmer}</strong></span>
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-          <span className="text-[11px] font-medium text-slate-500">
-            {listing.bidCount > 0 ? `${listing.bidCount} Bids placed` : "Direct bids open"}
+        <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span className="text-[11px] text-slate-400 font-medium">
+            {listing.bidCount > 0 ? `${listing.bidCount} Bids placed` : "Bidding open"}
           </span>
 
           <button
             onClick={() => onView(listing)}
-            className="inline-flex items-center gap-1 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white px-3 py-1.5 text-xs font-bold transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-3 py-1.5 text-xs font-semibold transition-colors"
           >
             <span>{t.viewDetails}</span>
             <ChevronRight className="h-3 w-3" />
@@ -714,7 +711,7 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
       if (data.success) {
         setSuccessMsg(true);
         if (onBidSuccess) onBidSuccess();
-        setTimeout(() => onClose(), 1600);
+        setTimeout(() => onClose(), 1500);
       }
     } catch (err) {
       alert("Bid submission failed.");
@@ -724,44 +721,45 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-slate-900 dark:text-white overflow-hidden"
+        className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] shadow-xl text-slate-900 dark:text-white overflow-hidden"
       >
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-4">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl">{listing.image}</span>
+        <div className="relative h-32 w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+          <img src={listing.photoUrl} alt={listing.crop} className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white">
             <div>
-              <h3 className="text-sm font-bold">{listing.crop} - Direct Bid</h3>
-              <p className="text-[11px] text-slate-500">Farmer: {listing.farmer} ({listing.region})</p>
+              <h3 className="text-base font-bold">{listing.crop}</h3>
+              <p className="text-xs text-slate-300">Farmer: {listing.farmer} ({listing.region})</p>
             </div>
+            <button onClick={onClose} className="rounded-lg p-1 text-white/80 hover:bg-white/20">
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         {successMsg ? (
-          <div className="p-8 text-center space-y-2.5">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
-              <CheckCircle2 className="h-7 w-7" />
+          <div className="p-7 text-center space-y-2">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white">
+              <CheckCircle2 className="h-6 w-6" />
             </div>
-            <h4 className="text-base font-bold text-emerald-600 dark:text-emerald-400">{t.bidSuccess}</h4>
+            <h4 className="text-sm font-bold">{t.bidSuccess}</h4>
             <p className="text-xs text-slate-500">The farmer received your offer with [Accept] & [Reject] buttons on Telegram.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
-            <div className="grid grid-cols-2 gap-2.5 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
+          <form onSubmit={handleSubmit} className="p-5 space-y-3">
+            <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-850 p-2.5 rounded-lg">
               <div>
-                <span className="text-slate-400">Listed Rate:</span>
+                <span className="text-slate-400">Listing Price:</span>
                 <div className="font-bold text-sm">₹{listing.price} / kg</div>
               </div>
               <div>
-                <span className="text-slate-400">AI Quality:</span>
-                <div className="font-bold text-sm text-emerald-600">{listing.quality}</div>
+                <span className="text-slate-400">Quality:</span>
+                <div className="font-bold text-sm">{listing.quality}</div>
               </div>
             </div>
 
@@ -772,7 +770,7 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
                 required
                 value={buyerName}
                 onChange={(e) => setBuyerName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium outline-none focus:border-slate-400"
               />
             </div>
 
@@ -783,7 +781,7 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
                 required
                 value={buyerPhone}
                 onChange={(e) => setBuyerPhone(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium outline-none focus:border-slate-400"
               />
             </div>
 
@@ -796,7 +794,7 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
                   required
                   value={bidPrice}
                   onChange={(e) => setBidPrice(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium outline-none focus:border-slate-400"
                 />
               </div>
 
@@ -807,25 +805,25 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
                   required
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium outline-none focus:border-slate-400"
                 />
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-3 flex items-center justify-between">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-2.5 flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-medium text-slate-500">{t.totalAmount}</span>
-                <div className="text-lg font-bold text-slate-900 dark:text-white">₹{Number(totalValue).toLocaleString('en-IN')}</div>
+                <span className="text-[10px] text-slate-400">{t.totalAmount}</span>
+                <div className="text-base font-bold text-slate-900 dark:text-white">₹{Number(totalValue).toLocaleString('en-IN')}</div>
               </div>
-              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                🔒 Smart Escrow Protected
-              </div>
+              <span className="text-[10px] font-semibold text-slate-500">
+                🔒 Escrow Protected
+              </span>
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-xs font-bold transition-colors disabled:opacity-50"
+              className="w-full rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 py-2.5 text-xs font-semibold transition-colors disabled:opacity-50"
             >
               {submitting ? t.submittingBid : t.submitBidBtn}
             </button>
@@ -868,34 +866,29 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <Shield className="h-3 w-3 text-emerald-600" />
-              <span>Smart Escrow Vault</span>
-            </div>
-            <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.escrowTitle}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">{t.escrowSubtitle}</p>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.escrowTitle}</h2>
+            <p className="text-xs text-slate-500 max-w-lg">{t.escrowSubtitle}</p>
           </div>
           <button
             onClick={onRefresh}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-750 self-start shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-750 self-start shadow-xs"
           >
-            <RefreshCw className="h-3.5 w-3.5 text-slate-500" />
+            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
             <span>Refresh</span>
           </button>
         </div>
 
         {transactions.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-10 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-2xl">📦</div>
-            <h3 className="mt-3 text-sm font-bold text-slate-800 dark:text-white">{t.noOrders}</h3>
-            <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">{t.noOrdersDesc}</p>
+          <div className="mt-6 rounded-lg border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">{t.noOrders}</h3>
+            <p className="mt-0.5 text-xs text-slate-500 max-w-sm mx-auto">{t.noOrdersDesc}</p>
           </div>
         ) : (
-          <div className="mt-6 space-y-3.5">
+          <div className="mt-5 space-y-3">
             {transactions.map((txn) => {
               const isEscrow = txn.status === "payment_escrowed";
               const isReleased = txn.status === "payment_released";
@@ -903,9 +896,9 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
               return (
                 <div
                   key={txn.id}
-                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                  className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
-                  <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded bg-slate-900 dark:bg-slate-700 px-2 py-0.5 text-xs font-bold text-white">
@@ -915,34 +908,28 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
                           {txn.crop || "Produce"} - {txn.quantity ? `${txn.quantity} kg` : "Batch"}
                         </h3>
                         <span
-                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                          className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
                             isReleased
-                              ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60"
-                              : "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60"
+                              ? "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                              : "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60"
                           }`}
                         >
                           {isReleased ? t.statusReleased : t.statusEscrowed}
                         </span>
                       </div>
 
-                      <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500 font-medium">
                         <span>👨‍🌾 {t.farmer}: <strong className="text-slate-800 dark:text-slate-200">{txn.farmer_name || "Farmer"}</strong></span>
                         <span>💳 {t.farmerUpi}: <strong className="font-mono text-slate-700 dark:text-slate-300">{txn.farmer_upi || "farmer@upi"}</strong></span>
                         <span>👤 {t.buyer}: <strong className="text-slate-800 dark:text-slate-200">{txn.buyer_name || "Buyer"}</strong></span>
                         <span>📅 {new Date(txn.created_at).toLocaleDateString()}</span>
                       </div>
-
-                      {txn.escrow_hash && (
-                        <p className="mt-1.5 text-[10px] font-mono text-slate-400 truncate max-w-sm">
-                          State Hash: {txn.escrow_hash.slice(0, 24)}...
-                        </p>
-                      )}
                     </div>
 
                     <div className="flex flex-col sm:items-end gap-2 shrink-0">
                       <div className="sm:text-right">
-                        <span className="text-[10px] font-medium text-slate-400">{t.orderAmount}</span>
-                        <div className="text-lg font-bold text-slate-900 dark:text-white">
+                        <span className="text-[10px] text-slate-400">{t.orderAmount}</span>
+                        <div className="text-base font-bold text-slate-900 dark:text-white">
                           ₹{Number(txn.total_amount || 0).toLocaleString("en-IN")}
                         </div>
                       </div>
@@ -952,7 +939,7 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
                           <button
                             onClick={() => handleConfirmDelivery(txn)}
                             disabled={releasingId === txn.id}
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-bold text-white transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
                           >
                             {releasingId === txn.id ? (
                               <>
@@ -976,16 +963,16 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
                                 amount: txn.total_amount
                               })
                             }
-                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200"
                           >
-                            <QrCode className="h-3.5 w-3.5 text-emerald-600" />
+                            <QrCode className="h-3.5 w-3.5 text-slate-600" />
                             <span>{t.viewUpiQrBtn}</span>
                           </button>
                         )}
 
                         <button
                           onClick={() => onOpenBill(txn.id)}
-                          className="inline-flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50"
                         >
                           <FileText className="h-3 w-3 text-slate-400" />
                           <span>{t.viewBillOfSupply}</span>
@@ -1024,52 +1011,48 @@ function UpiSettlementModal({ settlement, onClose, t }) {
     `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(upiUri)}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 text-center shadow-xl text-slate-900 dark:text-white"
+        className="w-full max-w-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 text-center shadow-xl text-slate-900 dark:text-white"
       >
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600">
-          <CheckCircle2 className="h-6 w-6" />
-        </div>
+        <h3 className="text-sm font-bold">{t.upiModalTitle}</h3>
+        <p className="mt-0.5 text-xs text-slate-500">{t.upiModalDesc}</p>
 
-        <h3 className="mt-2.5 text-base font-bold">{t.upiModalTitle}</h3>
-        <p className="mt-1 text-xs text-slate-500">{t.upiModalDesc}</p>
-
-        <div className="my-4 flex flex-col items-center justify-center">
-          <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-xs">
-            <img src={qrUrl} alt="UPI QR Code" className="h-44 w-44 rounded" />
+        <div className="my-3 flex flex-col items-center justify-center">
+          <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-xs">
+            <img src={qrUrl} alt="UPI QR Code" className="h-40 w-40 rounded" />
           </div>
-          <span className="mt-1.5 text-[10px] font-medium text-slate-400">{t.scanQrInstruction}</span>
+          <span className="mt-1 text-[10px] text-slate-400">{t.scanQrInstruction}</span>
         </div>
 
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 text-xs text-left space-y-1 font-medium">
+        <div className="rounded-lg bg-slate-50 dark:bg-slate-850 p-2.5 text-xs text-left space-y-1 font-medium">
           <div className="flex justify-between">
             <span className="text-slate-400">Farmer:</span>
-            <span className="font-bold text-slate-800 dark:text-slate-200">{settlement.farmerName || "Farmer"}</span>
+            <span className="font-semibold text-slate-800 dark:text-slate-200">{settlement.farmerName || "Farmer"}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">UPI ID:</span>
-            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{upiId}</span>
+            <span className="font-mono font-medium text-slate-700 dark:text-slate-300">{upiId}</span>
           </div>
           <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
-            <span className="text-slate-400">Released:</span>
-            <span className="font-bold text-emerald-600 text-sm">₹{Number(amount).toLocaleString('en-IN')}</span>
+            <span className="text-slate-400">Amount:</span>
+            <span className="font-bold text-sm">₹{Number(amount).toLocaleString('en-IN')}</span>
           </div>
         </div>
 
-        <div className="mt-4 flex gap-2">
+        <div className="mt-3.5 flex gap-2">
           <a
             href={upiUri}
-            className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-bold text-white transition-colors"
+            className="flex-1 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 py-2 text-xs font-semibold transition-colors"
           >
             {t.openUpiAppBtn}
           </a>
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             {t.closeBtn}
           </button>
@@ -1096,16 +1079,16 @@ function DigitalBillModal({ txnId, onClose, t }) {
   }, [txnId]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xl text-slate-900 dark:text-white"
+        className="w-full max-w-md max-h-[85vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 shadow-xl text-slate-900 dark:text-white"
       >
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4.5 w-4.5 text-emerald-600" />
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+          <div className="flex items-center gap-1.5">
+            <FileText className="h-4 w-4 text-slate-500" />
             <h3 className="text-sm font-bold">{t.billModalTitle}</h3>
           </div>
           <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
@@ -1114,43 +1097,42 @@ function DigitalBillModal({ txnId, onClose, t }) {
         </div>
 
         {loading || !bill ? (
-          <div className="py-10 text-center text-xs text-slate-400">
-            <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-emerald-600" />
-            Generating verifiable tax invoice...
+          <div className="py-8 text-center text-xs text-slate-400">
+            <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-1.5 text-slate-500" />
+            Generating tax invoice...
           </div>
         ) : (
-          <div className="mt-4 space-y-3 text-xs">
-            <div className="flex justify-between items-start bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
+          <div className="mt-3.5 space-y-3 text-xs">
+            <div className="flex justify-between items-start bg-slate-50 dark:bg-slate-850 p-2.5 rounded-lg">
               <div>
-                <span className="font-black text-sm text-emerald-600">FARLX SMART PROTOCOL</span>
-                <p className="text-[10px] text-slate-400 font-mono mt-0.5">{bill.invoiceNumber}</p>
+                <span className="font-bold text-xs text-slate-900 dark:text-white">FARLX PROTOCOL</span>
+                <p className="text-[10px] text-slate-400 font-mono">{bill.invoiceNumber}</p>
               </div>
               <div className="text-right">
-                <span className="rounded bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[9px] font-bold text-emerald-700 dark:text-emerald-400">
+                <span className="rounded bg-slate-100 dark:bg-slate-700 px-1.5 py-0.2 text-[9px] font-medium">
                   {bill.escrowVerification.status}
                 </span>
-                <p className="mt-1 text-slate-400 text-[10px]">{t.billDate}: {new Date(bill.date).toLocaleDateString()}</p>
+                <p className="mt-0.5 text-slate-400 text-[10px]">{t.billDate}: {new Date(bill.date).toLocaleDateString()}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="border border-slate-200 dark:border-slate-800 p-3 rounded-xl">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="border border-slate-200 dark:border-slate-800 p-2.5 rounded-lg">
                 <p className="font-bold text-slate-400 uppercase text-[9px]">{t.farmerInfo}</p>
-                <p className="font-bold mt-0.5">{bill.farmer.name}</p>
+                <p className="font-semibold mt-0.5">{bill.farmer.name}</p>
                 <p className="text-slate-500 text-[11px]">{bill.farmer.village}</p>
-                <p className="font-mono text-slate-600 dark:text-slate-400 text-[10px] mt-0.5">{bill.farmer.upi}</p>
               </div>
 
-              <div className="border border-slate-200 dark:border-slate-800 p-3 rounded-xl">
+              <div className="border border-slate-200 dark:border-slate-800 p-2.5 rounded-lg">
                 <p className="font-bold text-slate-400 uppercase text-[9px]">{t.buyerInfo}</p>
-                <p className="font-bold mt-0.5">{bill.buyer.name}</p>
-                <p className="text-emerald-600 text-[10px] font-medium mt-0.5">Verified Wholesale Consignee</p>
+                <p className="font-semibold mt-0.5">{bill.buyer.name}</p>
+                <p className="text-slate-400 text-[10px]">Verified Consignee</p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-              <div className="bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 font-bold flex justify-between text-[11px]">
-                <span>Produce & Grade</span>
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="bg-slate-50 dark:bg-slate-850 px-3 py-1.5 font-semibold flex justify-between text-[11px]">
+                <span>Produce</span>
                 <span>Amount</span>
               </div>
               <div className="p-3 space-y-1">
@@ -1158,30 +1140,22 @@ function DigitalBillModal({ txnId, onClose, t }) {
                   <span>{bill.produce.crop} ({bill.produce.grade})</span>
                   <span>₹{Number(bill.produce.totalAmount).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between text-slate-500 text-[11px]">
+                <div className="flex justify-between text-slate-400 text-[11px]">
                   <span>{bill.produce.quantityKg} kg @ ₹{bill.produce.ratePerKg}/kg</span>
-                  <span>GST: 0% (Exempt)</span>
+                  <span>GST: Exempt</span>
                 </div>
-                <p className="text-[10px] text-slate-400 pt-1.5 border-t border-slate-100 dark:border-slate-800">
-                  {bill.produce.gstExemption}
-                </p>
               </div>
-            </div>
-
-            <div className="bg-slate-900 text-slate-300 p-3 rounded-xl font-mono text-[9px]">
-              <p className="text-emerald-400 font-bold">{t.escrowAuditHash}:</p>
-              <p className="break-all mt-0.5 text-slate-400">{bill.escrowVerification.stateHash}</p>
             </div>
 
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => window.print()}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-500 py-2.5 text-xs font-bold text-white"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 py-2 text-xs font-semibold"
               >
                 <Printer className="h-3.5 w-3.5" />
                 <span>{t.printInvoice}</span>
               </button>
-              <button onClick={onClose} className="rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-semibold">
+              <button onClick={onClose} className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-medium">
                 {t.closeBtn}
               </button>
             </div>
@@ -1192,7 +1166,7 @@ function DigitalBillModal({ txnId, onClose, t }) {
   );
 }
 
-// ----------------- AI CROP QUALITY INSPECTOR -----------------
+// ----------------- AI QUALITY INSPECTOR (CLEAN) -----------------
 
 function AiQualityInspectorPage({ t }) {
   const [analyzing, setAnalyzing] = useState(false);
@@ -1202,10 +1176,7 @@ function AiQualityInspectorPage({ t }) {
     freshnessScore: 96.2,
     defectPercentage: 1.2,
     estimatedShelfLife: "7 - 9 Days",
-    moistureIndex: "91.5% (Optimal)",
-    sugarBrix: "4.8° Brix",
-    commercialFit: "Supermarkets, hypermarkets, and export aggregators.",
-    certificateHash: "8a4f912c98d41e77"
+    commercialFit: "Premium supermarkets and export aggregators."
   });
 
   const runAnalysis = async (cropName) => {
@@ -1221,7 +1192,7 @@ function AiQualityInspectorPage({ t }) {
         setTimeout(() => {
           setAnalysis(data.analysis);
           setAnalyzing(false);
-        }, 600);
+        }, 500);
       }
     } catch (e) {
       setAnalyzing(false);
@@ -1229,43 +1200,37 @@ function AiQualityInspectorPage({ t }) {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-            <Bot className="h-3 w-3 text-emerald-600" />
-            <span>Computer Vision AI</span>
-          </div>
-          <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.aiPageTitle}</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{t.aiPageSubtitle}</p>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 shadow-xs">
+        <div className="max-w-xl">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.aiPageTitle}</h2>
+          <p className="text-xs text-slate-500">{t.aiPageSubtitle}</p>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-5 text-center">
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-emerald-600 shadow-xs border border-slate-200 dark:border-slate-700">
-              <UploadCloud className="h-5 w-5" />
-            </div>
-            <h4 className="mt-2.5 text-xs font-bold text-slate-800 dark:text-white">{t.uploadPhotoPrompt}</h4>
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 p-4 text-center">
+            <UploadCloud className="h-6 w-6 text-slate-400 mx-auto" />
+            <h4 className="mt-2 text-xs font-bold text-slate-800 dark:text-white">{t.uploadPhotoPrompt}</h4>
             <p className="mt-0.5 text-[11px] text-slate-400">{t.uploadHelp}</p>
 
-            <div className="mt-4">
-              <p className="text-[10px] font-semibold text-slate-400 mb-1.5">{t.samplePhotos}</p>
+            <div className="mt-3">
+              <p className="text-[10px] text-slate-400 mb-1">{t.samplePhotos}</p>
               <div className="flex flex-wrap justify-center gap-1.5">
                 <button
                   onClick={() => runAnalysis("Tomato")}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-emerald-500"
+                  className="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-slate-400"
                 >
                   {t.sampleTomato}
                 </button>
                 <button
                   onClick={() => runAnalysis("Onion")}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-emerald-500"
+                  className="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-slate-400"
                 >
                   {t.sampleOnion}
                 </button>
                 <button
                   onClick={() => runAnalysis("Potato")}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-emerald-500"
+                  className="rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-slate-400"
                 >
                   {t.samplePotato}
                 </button>
@@ -1273,48 +1238,45 @@ function AiQualityInspectorPage({ t }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
-              <div className="flex items-center gap-1.5">
-                <Award className="h-4 w-4 text-emerald-600" />
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">{t.qualityAnalysisResult}</h4>
-              </div>
-              <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
-                Verified
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white">{t.qualityAnalysisResult}</h4>
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                Verified Grade
               </span>
             </div>
 
             {analyzing ? (
-              <div className="py-8 text-center text-xs text-slate-400 space-y-1.5">
-                <RefreshCw className="h-5 w-5 animate-spin mx-auto text-emerald-600" />
-                <p className="font-semibold">{t.analyzingImage}</p>
+              <div className="py-6 text-center text-xs text-slate-400 space-y-1">
+                <RefreshCw className="h-4 w-4 animate-spin mx-auto text-slate-400" />
+                <p>{t.analyzingImage}</p>
               </div>
             ) : (
-              <div className="space-y-2.5 text-xs">
+              <div className="space-y-2 text-xs">
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
-                    <span className="text-slate-400 text-[11px]">{t.overallGrade}</span>
-                    <div className="text-sm font-bold text-emerald-600 mt-0.5">{analysis.grade}</div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded">
+                    <span className="text-slate-400 text-[10px]">{t.overallGrade}</span>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{analysis.grade}</div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
-                    <span className="text-slate-400 text-[11px]">{t.freshnessScore}</span>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded">
+                    <span className="text-slate-400 text-[10px]">{t.freshnessScore}</span>
                     <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{analysis.freshnessScore}%</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
-                    <span className="text-slate-400 text-[11px]">{t.defectRate}</span>
-                    <div className="font-medium text-slate-800 dark:text-slate-200 mt-0.5">{analysis.defectPercentage}% (Clean)</div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded">
+                    <span className="text-slate-400 text-[10px]">{t.defectRate}</span>
+                    <div className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{analysis.defectPercentage}% (Clean)</div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
-                    <span className="text-slate-400 text-[11px]">{t.estimatedShelfLife}</span>
-                    <div className="font-medium text-slate-800 dark:text-slate-200 mt-0.5">{analysis.estimatedShelfLife}</div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded">
+                    <span className="text-slate-400 text-[10px]">{t.estimatedShelfLife}</span>
+                    <div className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{analysis.estimatedShelfLife}</div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
-                  <span className="text-slate-400 text-[11px]">{t.recommendation}</span>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded">
+                  <span className="text-slate-400 text-[10px]">{t.recommendation}</span>
                   <p className="font-medium text-slate-700 dark:text-slate-300 mt-0.5">{analysis.commercialFit}</p>
                 </div>
               </div>
@@ -1326,7 +1288,7 @@ function AiQualityInspectorPage({ t }) {
   );
 }
 
-// ----------------- MANDI PRICE INTELLIGENCE -----------------
+// ----------------- MANDI ADVISOR (CLEAN) -----------------
 
 function MandiAdvisorPage({ t }) {
   const [mandiPrices, setMandiPrices] = useState([]);
@@ -1341,23 +1303,19 @@ function MandiAdvisorPage({ t }) {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-            <BarChart3 className="h-3 w-3 text-emerald-600" />
-            <span>APMC Agmarknet Benchmarks</span>
-          </div>
-          <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.mandiTitle}</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{t.mandiSubtitle}</p>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 shadow-xs">
+        <div className="max-w-xl">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.mandiTitle}</h2>
+          <p className="text-xs text-slate-500">{t.mandiSubtitle}</p>
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="mt-5 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold text-[11px] border-b border-slate-200 dark:border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-850 text-slate-600 dark:text-slate-400 font-semibold text-[11px] border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="p-3">Crop</th>
-                <th className="p-3">Mandi</th>
+                <th className="p-3">APMC Mandi</th>
                 <th className="p-3">{t.mandiRate}</th>
                 <th className="p-3">{t.farlxRate}</th>
                 <th className="p-3">{t.extraEarnings}</th>
@@ -1366,13 +1324,13 @@ function MandiAdvisorPage({ t }) {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
               {mandiPrices.map((m, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-850/50">
                   <td className="p-3 font-bold text-slate-900 dark:text-white">{m.crop}</td>
                   <td className="p-3">{m.mandi} ({m.state})</td>
                   <td className="p-3 font-mono">₹{m.mandiRate.toFixed(2)}/kg</td>
-                  <td className="p-3 font-mono font-bold text-emerald-600">₹{m.farlxRate.toFixed(2)}/kg</td>
+                  <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">₹{m.farlxRate.toFixed(2)}/kg</td>
                   <td className="p-3">
-                    <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 text-xs font-bold">
+                    <span className="rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 text-xs font-semibold">
                       {m.difference}
                     </span>
                   </td>
@@ -1387,7 +1345,7 @@ function MandiAdvisorPage({ t }) {
   );
 }
 
-// ----------------- KISAN LOGISTICS POOLING -----------------
+// ----------------- KISAN LOGISTICS POOL (CLEAN) -----------------
 
 function LogisticsPoolPage({ t }) {
   const [pools, setPools] = useState([]);
@@ -1402,64 +1360,60 @@ function LogisticsPoolPage({ t }) {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-            <Truck className="h-3 w-3 text-emerald-600" />
-            <span>Kisan Freight Pooling</span>
-          </div>
-          <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.logisticsTitle}</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{t.logisticsSubtitle}</p>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 shadow-xs">
+        <div className="max-w-xl">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.logisticsTitle}</h2>
+          <p className="text-xs text-slate-500">{t.logisticsSubtitle}</p>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
           {pools.map((p) => (
             <div
               key={p.id}
-              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 p-4 shadow-xs space-y-3"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs space-y-2.5"
             >
               <div className="flex items-center justify-between">
                 <span className="rounded bg-slate-900 dark:bg-slate-700 px-2 py-0.5 text-xs font-bold text-white">
                   {p.id}
                 </span>
-                <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 text-[10px] font-medium">
                   {p.status}
                 </span>
               </div>
 
               <div>
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">{p.cluster}</h4>
-                <p className="text-xs text-slate-500">➔ {p.destination}</p>
+                <p className="text-xs text-slate-400">➔ {p.destination}</p>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-medium text-slate-500 mb-1">
-                  <span>{t.truckCapacity}</span>
+                  <span>Capacity</span>
                   <span>{p.utilizationPct}% ({p.currentLoadedKg} kg)</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                   <div
-                    className="h-full bg-emerald-600 rounded-full"
+                    className="h-full bg-slate-800 dark:bg-white rounded-full"
                     style={{ width: `${p.utilizationPct}%` }}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-lg">
+              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-800/50 p-2 rounded">
                 <div>
                   <span className="text-slate-400 text-[10px]">{t.savingsPerFarmer}:</span>
-                  <div className="font-bold text-emerald-600">{p.avgSavingsPerFarmer}</div>
+                  <div className="font-bold">{p.avgSavingsPerFarmer}</div>
                 </div>
                 <div>
                   <span className="text-slate-400 text-[10px]">{t.carbonReduced}:</span>
-                  <div className="font-bold text-slate-700 dark:text-slate-300">{p.co2SavedKg}</div>
+                  <div className="font-medium text-slate-500">{p.co2SavedKg}</div>
                 </div>
               </div>
 
               <button
                 onClick={() => alert(`Request submitted for ${p.cluster} freight pool.`)}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 py-2 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 {t.joinPoolBtn}
               </button>
@@ -1471,7 +1425,7 @@ function LogisticsPoolPage({ t }) {
   );
 }
 
-// ----------------- MAIN APP COMPONENT -----------------
+// ----------------- MAIN APP -----------------
 
 export default function App() {
   const [activeNav, setActiveNav] = useState("Home");
@@ -1590,21 +1544,21 @@ export default function App() {
           />
           <StatsGrid liveStats={liveStats} t={t} />
 
-          <div className="space-y-3.5">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.trendingCrops}</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">{t.trendingCrops}</h3>
                 <p className="text-xs text-slate-500">{t.verifiedDirect}</p>
               </div>
               <button
                 onClick={() => setActiveNav("Market")}
-                className="text-xs font-semibold text-emerald-600 hover:underline"
+                className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:underline"
               >
                 {t.exploreMarket} →
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {filteredListings.slice(0, 6).map((item) => (
                 <CropCard key={item.id} listing={item} onView={(l) => setSelectedListing(l)} t={t} />
               ))}
@@ -1616,19 +1570,19 @@ export default function App() {
 
     if (activeNav === "Market") {
       return (
-        <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-4">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622] p-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t.marketTitle}</h2>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.marketTitle}</h2>
                 <p className="text-xs text-slate-500">{t.marketSubtitle}</p>
               </div>
-              <div className="text-xs font-semibold text-emerald-600">
+              <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                 {filteredListings.length} {t.statsActiveListings}
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {filteredListings.map((item) => (
                 <CropCard key={item.id} listing={item} onView={(l) => setSelectedListing(l)} t={t} />
               ))}
@@ -1662,8 +1616,8 @@ export default function App() {
     }
 
     return (
-      <div className="p-8 text-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850">
-        <h3 className="text-base font-bold">{activeNav}</h3>
+      <div className="p-8 text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111622]">
+        <h3 className="text-sm font-bold">{activeNav}</h3>
         <p className="text-xs text-slate-500 mt-1">Live data viewable at /live-data</p>
       </div>
     );
@@ -1671,7 +1625,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen transition-colors duration-150 lg:flex ${
-      theme === "dark" ? "bg-[#090D16] text-slate-100" : "bg-[#F8FAFC] text-slate-900"
+      theme === "dark" ? "bg-[#090D14] text-slate-100" : "bg-[#F9FAFB] text-slate-900"
     }`}>
       <Sidebar
         active={activeNav}
@@ -1698,7 +1652,7 @@ export default function App() {
           t={t}
         />
 
-        <main className="w-full px-4 py-6 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+        <main className="w-full px-4 py-5 sm:px-6 lg:px-8 max-w-[1520px] mx-auto">
           {renderPage()}
         </main>
       </div>
