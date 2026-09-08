@@ -654,9 +654,22 @@ function TopBar({
   onOpenOrders,
   onSeedDemo,
   isLive = true,
+  isDark = false,
+  onToggleDark,
+  lang = "en",
+  onSetLang,
   user = { name: "Rajesh Kumar", role: "Wholesale Buyer" }
 }) {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const LANGS = [
+    { code: "en", label: "English", flag: "🇬🇧" },
+    { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
+    { code: "ta", label: "தமிழ்", flag: "🇮🇳" },
+    { code: "te", label: "తెలుగు", flag: "🇮🇳" },
+    { code: "mr", label: "मराठी", flag: "🇮🇳" }
+  ];
+  const currentLang = LANGS.find(l => l.code === lang) || LANGS[0];
 
   return (
     <header className={"sticky top-0 z-30 min-h-[74px] border-b backdrop-blur-xl transition-colors duration-200 " + (isDark ? "border-slate-700/80 bg-[#0B1120]/95" : "border-slate-200/80 bg-white/90")}>
@@ -2974,6 +2987,42 @@ export default function App() {
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      return localStorage.getItem("farlx_theme") === "dark";
+    } catch {
+      return false;
+    }
+  });
+
+  const [lang, setLang] = useState(() => {
+    try {
+      return localStorage.getItem("farlx_lang") || "en";
+    } catch {
+      return "en";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("farlx_theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("farlx_theme", "light");
+      }
+    } catch (e) {}
+  }, [isDark]);
+
+  const handleToggleDark = () => setIsDark((prev) => !prev);
+  const handleSetLang = (code) => {
+    setLang(code);
+    try {
+      localStorage.setItem("farlx_lang", code);
+    } catch (e) {}
+  };
+
   // Live state from Backend
   const [liveListings, setLiveListings] = useState([]);
   const [liveStats, setLiveStats] = useState(null);
@@ -3113,6 +3162,10 @@ export default function App() {
                 onClearNotifications={handleClearNotifications}
                 onOpenOrders={openOrders}
                 onSeedDemo={handleSeedDemo}
+                isDark={isDark}
+                onToggleDark={handleToggleDark}
+                lang={lang}
+                onSetLang={handleSetLang}
               />
 
               <main className="w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10 xl:py-10">
@@ -3156,6 +3209,10 @@ export default function App() {
                 onClearNotifications={handleClearNotifications}
                 onOpenOrders={openOrders}
                 onSeedDemo={handleSeedDemo}
+                isDark={isDark}
+                onToggleDark={handleToggleDark}
+                lang={lang}
+                onSetLang={handleSetLang}
               />
               <main className="w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10 xl:py-10">
                 <div className="mx-auto w-full max-w-[1720px]">
