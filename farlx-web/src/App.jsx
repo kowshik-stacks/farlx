@@ -6,89 +6,35 @@ import {
   Sprout,
   TrendingUp,
   ShoppingBag,
-  CloudSun,
-  Bot,
-  Users,
   BarChart3,
-  Settings,
+  Bot,
+  Truck,
   Menu,
   Bell,
   Search,
-  DollarSign,
-  Package,
-  ShieldCheck,
-  ArrowUpRight,
-  ArrowDownRight,
-  Leaf,
   ChevronRight,
   ExternalLink,
-  ShoppingCart,
-  Star,
-  Info,
   X,
   Sparkles,
   MapPin,
-  CircleDollarSign,
-  BadgeCheck,
-  Zap,
-  Store,
-  SlidersHorizontal,
-  Activity,
-  Truck,
-  Handshake,
-  Flame,
-  Circle,
-  CalendarDays,
-  MessageCircle,
-  Target,
-  ScanSearch,
-  HeartHandshake,
-  ChartNoAxesCombined,
-  Send,
   Award,
   IndianRupee,
-  Layers3,
-  CircleCheckBig,
-  Filter,
-  Check,
-  Plus,
-  Minus,
-  ClipboardList,
-  Clock3,
+  Activity,
+  Users,
+  Zap,
   Shield,
+  ShieldCheck,
   CheckCircle2,
-  Phone,
-  MessageSquare,
-  PackageCheck,
-  BadgeIndianRupee,
-  CircleAlert,
-  ListFilter,
-  QrCode,
   RefreshCw,
   Sun,
   Moon,
-  Globe,
   Printer,
   FileText,
-  Camera,
   UploadCloud,
-  ChevronDown
+  ChevronDown,
+  Check,
+  QrCode
 } from "lucide-react";
-
-import {
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar
-} from "recharts";
 
 import LiveData from "./pages/LiveData";
 import { translations, languages } from "./translations";
@@ -116,15 +62,6 @@ function normalizeListing(raw, idx = 0) {
 
   const key = (raw.crop || "").toLowerCase().trim();
   const emoji = cropEmojis[key] || "🌿";
-
-  const gradients = [
-    { gradient: "from-rose-500 via-orange-400 to-amber-300", softGradient: "from-rose-50 via-orange-50 to-amber-50" },
-    { gradient: "from-amber-500 via-yellow-400 to-lime-300", softGradient: "from-amber-50 via-yellow-50 to-lime-50" },
-    { gradient: "from-emerald-600 via-teal-500 to-cyan-400", softGradient: "from-emerald-50 via-teal-50 to-cyan-50" },
-    { gradient: "from-blue-600 via-cyan-500 to-teal-400", softGradient: "from-blue-50 via-cyan-50 to-teal-50" }
-  ];
-
-  const g = gradients[idx % gradients.length];
   const qty = Number(raw.quantity || 100);
 
   return {
@@ -147,20 +84,14 @@ function normalizeListing(raw, idx = 0) {
     bidCount: Number(raw.bid_count || 0),
     badge: raw.status === "sold" ? "Sold in Escrow" : "Live Batch",
     matching: 96,
-    trend: 12.5,
     rating: 4.9,
     orders: 142,
     deliveryRate: 99,
-    acceptingRate: 98,
     telegram: "@FarlX_bot",
-    description: raw.description || `Farm-fresh ${raw.crop} harvested directly by farmer. Certified Grade A+ produce available for direct bulk purchase with FARLX Smart Escrow and instant UPI settlement.`,
-    gradient: g.gradient,
-    softGradient: g.softGradient,
+    description: raw.description || `Farm-fresh ${raw.crop} harvested directly by farmer. Certified Grade A+ produce available for direct bulk procurement with FARLX Smart Escrow and instant UPI settlement.`,
     category: ["Tomato", "Onion", "Potato", "Chilli", "Cucumber", "Brinjal", "Carrot"].includes(raw.crop) ? "Vegetables" : "Fruits & Grains"
   };
 }
-
-// ----------------- SAMPLE STATIC LISTINGS FALLBACK -----------------
 
 const sampleListings = [
   {
@@ -178,15 +109,11 @@ const sampleListings = [
     delivery: "Ready Now",
     badge: "AI Certified",
     matching: 98,
-    trend: 14.2,
     rating: 4.9,
     orders: 142,
     deliveryRate: 99,
-    acceptingRate: 98,
     telegram: "@FarlX_bot",
-    description: "Export-grade greenhouse tomatoes, high firmness and deep red colour. Harvested 4 hours ago.",
-    gradient: "from-rose-500 via-orange-400 to-amber-300",
-    softGradient: "from-rose-50 via-orange-50 to-amber-50",
+    description: "Export-grade greenhouse tomatoes, high firmness and uniform deep red color. Harvested 4 hours ago.",
     category: "Vegetables"
   },
   {
@@ -202,17 +129,13 @@ const sampleListings = [
     quantity: "1.2 tonnes",
     quantityNumber: 1200,
     delivery: "Dispatch in 24h",
-    badge: "Mandi Best Value",
+    badge: "Mandi Benchmark",
     matching: 94,
-    trend: 8.5,
     rating: 4.8,
     orders: 88,
     deliveryRate: 97,
-    acceptingRate: 99,
     telegram: "@FarlX_bot",
     description: "Cured red onions with excellent shelf life (45+ days). Dry skin, uniform sizing.",
-    gradient: "from-purple-600 via-pink-500 to-rose-400",
-    softGradient: "from-purple-50 via-pink-50 to-rose-50",
     category: "Vegetables"
   },
   {
@@ -230,29 +153,25 @@ const sampleListings = [
     delivery: "Ready Now",
     badge: "Direct Farm Gate",
     matching: 95,
-    trend: -2.1,
     rating: 4.7,
     orders: 110,
     deliveryRate: 96,
-    acceptingRate: 95,
     telegram: "@FarlX_bot",
     description: "Sorted Jyoti variety potatoes. High dry matter, suitable for table consumption and processing.",
-    gradient: "from-amber-500 via-yellow-400 to-lime-300",
-    softGradient: "from-amber-50 via-yellow-50 to-lime-50",
     category: "Vegetables"
   }
 ];
 
 // ----------------- SIDEBAR -----------------
 
-function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onToggleTheme, lang, onSelectLang }) {
+function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onToggleTheme }) {
   const navItems = [
     { label: t.navHome, id: "Home", icon: Home },
     { label: t.navMarket, id: "Market", icon: TrendingUp },
     { label: t.navBuySell, id: "Buy & Sell", icon: ShoppingBag, badge: "ESCROW" },
     { label: t.navAiAssistant, id: "AI Inspector", icon: Bot, badge: "AI" },
     { label: t.navWeather, id: "Mandi Advisor", icon: BarChart3 },
-    { label: t.navLogistics, id: "Logistics Pool", icon: Truck, badge: "NEW" },
+    { label: t.navLogistics, id: "Logistics Pool", icon: Truck, badge: "POOL" },
     { label: t.navMyFarm, id: "My Farm", icon: Sprout }
   ];
 
@@ -260,48 +179,48 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
     <>
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-100"
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${
           theme === "dark"
-            ? "bg-[#0F172A] border-r border-slate-800 text-slate-100"
+            ? "bg-[#0B0F19] border-r border-slate-800 text-slate-100"
             : "bg-white border-r border-slate-200 text-slate-900"
         }`}
       >
         {/* Brand */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-xl font-black text-white shadow-lg shadow-emerald-500/25">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-lg text-white font-bold shadow-sm">
               🌾
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black tracking-tight bg-gradient-to-r from-emerald-600 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">
+                <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
                   FARLX
                 </span>
-                <span className="rounded-md bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 text-[10px] font-black text-emerald-700 dark:text-emerald-400">
+                <span className="rounded bg-emerald-100 dark:bg-emerald-950/80 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800 dark:text-emerald-400">
                   SIH
                 </span>
               </div>
-              <p className="text-[11px] font-semibold text-slate-400">Direct Smart Escrow</p>
+              <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500">Agri Direct Escrow</p>
             </div>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Navigation list */}
-        <nav className="flex-1 space-y-1.5 overflow-y-auto px-4 py-5">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isSelected = active === item.id;
@@ -313,24 +232,24 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
                   setActive(item.id);
                   setMobileOpen(false);
                 }}
-                className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition-all ${
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all ${
                   isSelected
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20"
+                    ? "bg-emerald-600 text-white shadow-sm"
                     : theme === "dark"
-                    ? "text-slate-300 hover:bg-slate-800 hover:text-white"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className={`h-4.5 w-4.5 ${isSelected ? "text-white" : "text-slate-400 group-hover:text-emerald-500"}`} />
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`h-4 w-4 ${isSelected ? "text-white" : "text-slate-400 dark:text-slate-500"}`} />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
-                    className={`rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase ${
+                    className={`rounded px-1.5 py-0.2 text-[9px] font-bold uppercase ${
                       isSelected
                         ? "bg-white/20 text-white"
-                        : "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                     }`}
                   >
                     {item.badge}
@@ -341,15 +260,15 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
           })}
         </nav>
 
-        {/* Bottom utility controls */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+        {/* Bottom controls */}
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
           {/* Theme switcher */}
-          <div className="flex items-center justify-between rounded-xl bg-slate-100 dark:bg-slate-800 p-1.5 text-xs font-bold">
+          <div className="flex items-center justify-between rounded-xl bg-slate-100 dark:bg-slate-800/60 p-1 text-xs font-medium">
             <button
               onClick={() => onToggleTheme("light")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1 transition-all ${
                 theme === "light"
-                  ? "bg-white text-slate-900 shadow-sm"
+                  ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -358,9 +277,9 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
             </button>
             <button
               onClick={() => onToggleTheme("dark")}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1 transition-all ${
                 theme === "dark"
-                  ? "bg-slate-900 text-white shadow-sm"
+                  ? "bg-slate-900 text-white shadow-xs"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -369,23 +288,21 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen, t, theme, onTog
             </button>
           </div>
 
-          {/* Telegram bot status card */}
+          {/* Telegram bot status link */}
           <a
             href="https://t.me/FarlX_bot"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 dark:from-cyan-950/40 dark:to-blue-950/40 border border-cyan-200/50 dark:border-cyan-800/40 p-3 text-xs transition-all hover:scale-[1.02]"
+            className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500 text-white font-black text-sm">
-                🤖
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-base">🤖</span>
               <div>
-                <p className="font-bold text-slate-900 dark:text-white">@FarlX_bot</p>
-                <p className="text-[10px] text-cyan-700 dark:text-cyan-400">Telegram Bot Live</p>
+                <p className="font-bold text-slate-900 dark:text-white leading-none">@FarlX_bot</p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">Telegram Bot Active</p>
               </div>
             </div>
-            <ExternalLink className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+            <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
           </a>
         </div>
       </aside>
@@ -401,7 +318,6 @@ function TopBar({
   notifications = [],
   unreadCount = 0,
   onClearNotifications,
-  onOpenOrders,
   onSeedDemo,
   theme,
   onToggleTheme,
@@ -416,24 +332,24 @@ function TopBar({
 
   return (
     <header
-      className={`sticky top-0 z-30 min-h-[74px] border-b backdrop-blur-xl transition-colors ${
+      className={`sticky top-0 z-30 min-h-[64px] border-b backdrop-blur-md transition-colors ${
         theme === "dark"
-          ? "bg-[#0F172A]/90 border-slate-800 text-white"
+          ? "bg-[#0B0F19]/90 border-slate-800 text-white"
           : "bg-white/90 border-slate-200/80 text-slate-900"
       }`}
     >
-      <div className="flex min-h-[74px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <div className="flex min-h-[64px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           onClick={onMenu}
-          className="shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-600 dark:text-slate-300 shadow-sm lg:hidden"
+          className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-300 lg:hidden hover:bg-slate-50 dark:hover:bg-slate-800"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4.5 w-4.5" />
         </button>
 
-        {/* Search */}
-        <div className="hidden min-w-0 flex-1 md:block max-w-[420px]">
-          <label className="flex h-11 w-full items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-4 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10">
-            <Search className="h-4 w-4 text-slate-400" />
+        {/* Clean search */}
+        <div className="hidden min-w-0 flex-1 md:block max-w-[380px]">
+          <label className="flex h-9 w-full items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/60 px-3 focus-within:border-emerald-500 focus-within:bg-white dark:focus-within:bg-slate-800">
+            <Search className="h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               placeholder={t.searchPlaceholder}
@@ -443,16 +359,16 @@ function TopBar({
           </label>
         </div>
 
-        {/* Right Side Controls */}
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        {/* Right side controls */}
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
           {/* Quick Demo Seed */}
           {onSeedDemo && (
             <button
               onClick={onSeedDemo}
-              title="Add sample farmer, crop & bid"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:scale-105"
+              title="Generate demo data for testing"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs transition-colors"
             >
-              <Zap className="h-3.5 w-3.5 text-amber-500 animate-bounce" />
+              <Zap className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
               <span className="hidden sm:inline">{t.seedDemoBtn}</span>
             </button>
           )}
@@ -461,11 +377,11 @@ function TopBar({
           <div className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs"
             >
               <span className="text-sm">{currentLangObj.flag}</span>
               <span className="hidden sm:inline">{currentLangObj.label}</span>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
             <AnimatePresence>
@@ -473,10 +389,10 @@ function TopBar({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
                   <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-xl"
+                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                    className="absolute right-0 top-11 z-50 w-44 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-lg"
                   >
                     {languages.map((l) => (
                       <button
@@ -485,14 +401,14 @@ function TopBar({
                           onSelectLang(l.code);
                           setLangOpen(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${
                           lang === l.code
-                            ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400"
-                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                            ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold"
+                            : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                         }`}
                       >
                         <span className="flex items-center gap-2">
-                          <span className="text-base">{l.flag}</span>
+                          <span>{l.flag}</span>
                           <span>{l.label}</span>
                         </span>
                         {lang === l.code && <Check className="h-3.5 w-3.5" />}
@@ -504,28 +420,28 @@ function TopBar({
             </AnimatePresence>
           </div>
 
-          {/* Theme Switcher Toggle Button */}
+          {/* Theme switcher toggle */}
           <button
             onClick={() => onToggleTheme(theme === "dark" ? "light" : "dark")}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-600 dark:text-slate-300 shadow-sm transition-all hover:scale-105"
+            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (
-              <Sun className="h-4.5 w-4.5 text-amber-400" />
+              <Sun className="h-4 w-4 text-amber-400" />
             ) : (
-              <Moon className="h-4.5 w-4.5 text-indigo-600" />
+              <Moon className="h-4 w-4 text-slate-600" />
             )}
           </button>
 
-          {/* Notification Button & Dropdown */}
+          {/* Notifications */}
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-600 dark:text-slate-300 shadow-sm transition-all hover:scale-105"
+              className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-xs"
             >
-              <Bell className="h-4.5 w-4.5" />
+              <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-bounce">
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -536,44 +452,44 @@ function TopBar({
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
                   <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 top-12 z-50 w-80 sm:w-96 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-2xl"
+                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                    className="absolute right-0 top-11 z-50 w-80 sm:w-96 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl overflow-hidden"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 bg-gradient-to-r from-slate-900 to-emerald-950 px-4 py-3.5 text-white">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/80 px-4 py-3 text-slate-900 dark:text-white">
                       <div className="flex items-center gap-2">
-                        <Bell className="h-4 w-4 text-emerald-400" />
-                        <span className="text-xs font-black uppercase tracking-wider">{t.notifications}</span>
+                        <Bell className="h-3.5 w-3.5 text-emerald-600" />
+                        <span className="text-xs font-bold uppercase tracking-wider">{t.notifications}</span>
                         {unreadCount > 0 && (
-                          <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold">
+                          <span className="rounded bg-rose-500/10 text-rose-600 px-1.5 py-0.2 text-[10px] font-bold">
                             {unreadCount} {t.unread}
                           </span>
                         )}
                       </div>
                       {unreadCount > 0 && onClearNotifications && (
-                        <button onClick={onClearNotifications} className="text-[11px] font-bold text-emerald-300 hover:underline">
+                        <button onClick={onClearNotifications} className="text-[11px] font-bold text-emerald-600 hover:underline">
                           {t.markAllRead}
                         </button>
                       )}
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
                       {notifications.length === 0 ? (
-                        <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
-                          <p className="font-bold">{t.noNotifications}</p>
-                          <p className="mt-1">Telegram events, bids, and escrow releases appear here live.</p>
+                        <div className="p-6 text-center text-xs text-slate-400">
+                          <p className="font-semibold">{t.noNotifications}</p>
+                          <p className="mt-1">Telegram events, bids, and escrow updates will appear here.</p>
                         </div>
                       ) : (
                         notifications.slice(0, 8).map((n) => (
                           <div
                             key={n.id}
-                            className={`p-3.5 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
-                              !n.read ? "bg-emerald-50/40 dark:bg-emerald-950/30" : ""
+                            className={`p-3.5 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/40 ${
+                              !n.read ? "bg-emerald-50/30 dark:bg-emerald-950/20" : ""
                             }`}
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <span className="font-black text-slate-900 dark:text-white">{n.title}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{n.title}</span>
                               <span className="shrink-0 text-[10px] text-slate-400">
                                 {new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                               </span>
@@ -589,13 +505,13 @@ function TopBar({
             </AnimatePresence>
           </div>
 
-          {/* User profile badge */}
-          <div className="flex items-center gap-2.5 border-l border-slate-200 dark:border-slate-700 pl-2.5 sm:pl-3">
+          {/* User badge */}
+          <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-2.5">
             <div className="hidden sm:block text-right">
-              <p className="text-xs font-black text-slate-900 dark:text-white">Rajesh Kumar</p>
-              <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Buyer Portal</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white leading-none">Rajesh Kumar</p>
+              <p className="text-[10px] font-medium text-slate-400 mt-0.5">Wholesale Buyer</p>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-xs font-black text-white shadow-md">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 dark:bg-slate-700 text-xs font-bold text-white">
               RK
             </div>
           </div>
@@ -605,40 +521,39 @@ function TopBar({
   );
 }
 
-// ----------------- HERO BANNER -----------------
+// ----------------- HERO BANNER (CLEAN & MINIMALIST) -----------------
 
 function HeroBanner({ onExplore, onOpenOrders, t }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#07241A] via-[#0E3B2B] to-[#0A4D3C] p-6 sm:p-10 text-white shadow-xl shadow-emerald-950/20">
-      <div className="absolute right-0 top-0 -mt-10 -mr-10 h-72 w-72 rounded-full bg-emerald-500/15 blur-3xl" />
-      <div className="relative z-10 max-w-3xl">
-        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-black text-emerald-300 border border-emerald-500/30">
-          <Sparkles className="h-3.5 w-3.5" />
+    <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 text-white p-6 sm:p-9 shadow-sm">
+      <div className="relative z-10 max-w-2xl">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-0.8 text-xs font-semibold text-emerald-400">
+          <Sparkles className="h-3 w-3" />
           <span>{t.heroBadge}</span>
         </div>
 
-        <h1 className="mt-4 text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+        <h1 className="mt-3.5 text-2xl sm:text-3xl font-black tracking-tight leading-snug">
           {t.heroTitle}
         </h1>
 
-        <p className="mt-3 text-sm sm:text-base leading-relaxed text-emerald-100/90 font-medium">
+        <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-300 font-normal">
           {t.heroSubtitle}
         </p>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3.5">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
             onClick={onExplore}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 px-5 py-3 text-xs sm:text-sm font-black text-slate-950 shadow-lg shadow-emerald-500/25 hover:opacity-95 transition-all hover:scale-105"
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 text-xs font-bold shadow-xs transition-colors"
           >
-            <TrendingUp className="h-4 w-4" />
+            <TrendingUp className="h-3.5 w-3.5" />
             <span>{t.exploreMarket}</span>
           </button>
 
           <button
             onClick={onOpenOrders}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-xs sm:text-sm font-black text-white backdrop-blur-md hover:bg-white/20 transition-all"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 hover:bg-slate-800 text-slate-200 px-4 py-2.5 text-xs font-bold transition-colors"
           >
-            <ShieldCheck className="h-4 w-4 text-emerald-300" />
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
             <span>{t.openEscrow}</span>
           </button>
         </div>
@@ -647,7 +562,7 @@ function HeroBanner({ onExplore, onOpenOrders, t }) {
   );
 }
 
-// ----------------- STATS GRID -----------------
+// ----------------- STATS GRID (CLEAN & UNIFORM) -----------------
 
 function StatsGrid({ liveStats, t }) {
   const stats = [
@@ -655,52 +570,48 @@ function StatsGrid({ liveStats, t }) {
       title: t.statsActiveListings,
       val: liveStats ? liveStats.activeListings : "3",
       icon: Sprout,
-      color: "from-emerald-500 to-teal-600",
-      pill: "+100% Direct"
+      pill: "Direct Farm"
     },
     {
       title: t.statsTotalBids,
       val: liveStats ? liveStats.totalBids : "12",
       icon: Activity,
-      color: "from-blue-500 to-cyan-600",
-      pill: "Telegram Alerted"
+      pill: "Telegram Sync"
     },
     {
       title: t.statsVolume,
       val: liveStats ? `₹${Number(liveStats.totalVolume || 0).toLocaleString('en-IN')}` : "₹48,500",
       icon: IndianRupee,
-      color: "from-amber-500 to-orange-600",
-      pill: "Smart Escrow"
+      pill: "Escrow Vault"
     },
     {
       title: t.statsFarmers,
       val: liveStats ? liveStats.totalFarmers : "8",
       icon: Users,
-      color: "from-violet-500 to-purple-600",
       pill: "Verified UPI"
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
       {stats.map((s, i) => {
         const Icon = s.icon;
         return (
           <div
             key={i}
-            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 p-4 sm:p-5 shadow-sm transition-all hover:shadow-md"
+            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-4 shadow-xs"
           >
             <div className="flex items-center justify-between">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr ${s.color} text-white shadow-md`}>
-                <Icon className="h-5 w-5" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                <Icon className="h-4 w-4" />
               </div>
-              <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-700 dark:text-slate-300">
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                 {s.pill}
               </span>
             </div>
             <div className="mt-3">
-              <div className="text-2xl font-black text-slate-900 dark:text-white">{s.val}</div>
-              <div className="text-xs font-bold text-slate-500 dark:text-slate-400">{s.title}</div>
+              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{s.val}</div>
+              <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{s.title}</div>
             </div>
           </div>
         );
@@ -709,61 +620,62 @@ function StatsGrid({ liveStats, t }) {
   );
 }
 
-// ----------------- CROP CARD -----------------
+// ----------------- CROP CARD (CLEAN & ELEGANT) -----------------
 
 function CropCard({ listing, onView, t }) {
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
-      <div className={`relative flex h-40 items-center justify-center bg-gradient-to-tr ${listing.gradient} p-4 text-6xl shadow-inner`}>
-        <span className="transition-transform duration-300 group-hover:scale-125 select-none">{listing.image}</span>
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 shadow-xs transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+      {/* Clean neutral image container */}
+      <div className="relative flex h-36 items-center justify-center bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800/80 p-4 text-5xl">
+        <span className="transition-transform duration-200 group-hover:scale-110 select-none">{listing.image}</span>
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          <span className="rounded-full bg-black/40 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-black text-white uppercase">
+        {/* Minimal clean badges */}
+        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+          <span className="rounded-md border border-emerald-200/80 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
             {listing.quality}
           </span>
-          <span className="rounded-full bg-emerald-500/80 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-black text-white">
+          <span className="rounded-md bg-slate-900/70 dark:bg-slate-700/80 px-2 py-0.5 text-[10px] font-medium text-white">
             {listing.freshnessScore}% Fresh
           </span>
         </div>
 
-        <div className="absolute bottom-3 right-3 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2.5 py-1 text-xs font-black text-slate-900 dark:text-white shadow-sm">
-          ₹{listing.price} {t.perKg}
+        <div className="absolute bottom-2.5 right-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-0.5 text-xs font-black text-slate-900 dark:text-white shadow-xs">
+          ₹{listing.price} <span className="text-[10px] font-normal text-slate-400">{t.perKg}</span>
         </div>
       </div>
 
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
             {listing.crop}
           </h3>
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
             {listing.quantity}
           </span>
         </div>
 
-        <div className="mt-2 space-y-1 text-xs text-slate-600 dark:text-slate-400 font-medium">
+        <div className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <div className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-slate-400" />
+            <MapPin className="h-3 w-3 text-slate-400" />
             <span>{listing.region}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Award className="h-3.5 w-3.5 text-emerald-500" />
-            <span>{t.farmer}: <strong>{listing.farmer}</strong></span>
+            <Award className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+            <span>{t.farmer}: <strong className="text-slate-800 dark:text-slate-200">{listing.farmer}</strong></span>
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
-          <div className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-            {listing.bidCount > 0 ? `${listing.bidCount} Bids placed` : "Open for direct bids"}
-          </div>
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+          <span className="text-[11px] font-medium text-slate-500">
+            {listing.bidCount > 0 ? `${listing.bidCount} Bids placed` : "Direct bids open"}
+          </span>
 
           <button
             onClick={() => onView(listing)}
-            className="inline-flex items-center gap-1 rounded-xl bg-slate-900 dark:bg-emerald-600 px-3.5 py-2 text-xs font-black text-white hover:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors shadow-sm"
+            className="inline-flex items-center gap-1 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white px-3 py-1.5 text-xs font-bold transition-colors"
           >
             <span>{t.viewDetails}</span>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3 w-3" />
           </button>
         </div>
       </div>
@@ -802,113 +714,110 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
       if (data.success) {
         setSuccessMsg(true);
         if (onBidSuccess) onBidSuccess();
-        setTimeout(() => {
-          onClose();
-        }, 1800);
+        setTimeout(() => onClose(), 1600);
       }
     } catch (err) {
-      console.error(err);
-      alert("Bid submission failed. Ensure backend is reachable.");
+      alert("Bid submission failed.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl text-slate-900 dark:text-white"
+        exit={{ opacity: 0, scale: 0.98 }}
+        className="w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl text-slate-900 dark:text-white overflow-hidden"
       >
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-5">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{listing.image}</span>
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-4">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">{listing.image}</span>
             <div>
-              <h3 className="text-lg font-black">{listing.crop} - Direct Bid</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Farmer: {listing.farmer} ({listing.region})</p>
+              <h3 className="text-sm font-bold">{listing.crop} - Direct Bid</h3>
+              <p className="text-[11px] text-slate-500">Farmer: {listing.farmer} ({listing.region})</p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-            <X className="h-5 w-5" />
+          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {successMsg ? (
-          <div className="p-8 text-center space-y-3">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="h-10 w-10" />
+          <div className="p-8 text-center space-y-2.5">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h4 className="text-lg font-black text-emerald-600 dark:text-emerald-400">{t.bidSuccess}</h4>
+            <h4 className="text-base font-bold text-emerald-600 dark:text-emerald-400">{t.bidSuccess}</h4>
             <p className="text-xs text-slate-500">The farmer received your offer with [Accept] & [Reject] buttons on Telegram.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl">
+          <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+            <div className="grid grid-cols-2 gap-2.5 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
               <div>
                 <span className="text-slate-400">Listed Rate:</span>
-                <div className="font-black text-sm">₹{listing.price} / kg</div>
+                <div className="font-bold text-sm">₹{listing.price} / kg</div>
               </div>
               <div>
                 <span className="text-slate-400">AI Quality:</span>
-                <div className="font-black text-sm text-emerald-600">{listing.quality}</div>
+                <div className="font-bold text-sm text-emerald-600">{listing.quality}</div>
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.yourName}</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.yourName}</label>
               <input
                 type="text"
                 required
                 value={buyerName}
                 onChange={(e) => setBuyerName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-bold outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.yourPhone}</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.yourPhone}</label>
               <input
                 type="text"
                 required
                 value={buyerPhone}
                 onChange={(e) => setBuyerPhone(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-bold outline-none focus:border-emerald-500"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.offeredPrice}</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.offeredPrice}</label>
                 <input
                   type="number"
                   step="0.5"
                   required
                   value={bidPrice}
                   onChange={(e) => setBidPrice(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-bold outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">{t.bidQuantity}</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{t.bidQuantity}</label>
                 <input
                   type="number"
                   required
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-xs font-bold outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 p-3.5 flex items-center justify-between">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-3 flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">{t.totalAmount}</span>
-                <div className="text-xl font-black text-slate-900 dark:text-white">₹{Number(totalValue).toLocaleString('en-IN')}</div>
+                <span className="text-[11px] font-medium text-slate-500">{t.totalAmount}</span>
+                <div className="text-lg font-bold text-slate-900 dark:text-white">₹{Number(totalValue).toLocaleString('en-IN')}</div>
               </div>
-              <div className="text-[10px] text-right font-bold text-slate-500">
+              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                 🔒 Smart Escrow Protected
               </div>
             </div>
@@ -916,7 +825,7 @@ function ListingModal({ listing, onClose, onBidSuccess, t }) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-3 text-xs font-black text-white shadow-lg shadow-emerald-600/20 hover:opacity-95 disabled:opacity-50"
+              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 text-xs font-bold transition-colors disabled:opacity-50"
             >
               {submitting ? t.submittingBid : t.submitBidBtn}
             </button>
@@ -952,7 +861,6 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
         if (onRefresh) onRefresh();
       }
     } catch (err) {
-      console.error(err);
       alert("Payment release failed.");
     } finally {
       setReleasingId(null);
@@ -960,34 +868,34 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-400">
-              <Shield className="h-3.5 w-3.5" />
-              <span>Smart Escrow Protocol</span>
+            <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Shield className="h-3 w-3 text-emerald-600" />
+              <span>Smart Escrow Vault</span>
             </div>
-            <h2 className="mt-2 text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{t.escrowTitle}</h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl">{t.escrowSubtitle}</p>
+            <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.escrowTitle}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl">{t.escrowSubtitle}</p>
           </div>
           <button
             onClick={onRefresh}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 self-start"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-750 self-start shadow-xs"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3.5 w-3.5 text-slate-500" />
             <span>Refresh</span>
           </button>
         </div>
 
         {transactions.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-12 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-3xl">📦</div>
-            <h3 className="mt-4 text-base font-black text-slate-800 dark:text-white">{t.noOrders}</h3>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">{t.noOrdersDesc}</p>
+          <div className="mt-8 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-10 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-2xl">📦</div>
+            <h3 className="mt-3 text-sm font-bold text-slate-800 dark:text-white">{t.noOrders}</h3>
+            <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">{t.noOrdersDesc}</p>
           </div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 gap-4">
+          <div className="mt-6 space-y-3.5">
             {transactions.map((txn) => {
               const isEscrow = txn.status === "payment_escrowed";
               const isReleased = txn.status === "payment_released";
@@ -995,46 +903,46 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
               return (
                 <div
                   key={txn.id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-5 shadow-sm hover:shadow-md transition-all"
+                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <span className="rounded-md bg-slate-900 dark:bg-slate-700 px-2 py-0.5 text-xs font-black text-white">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded bg-slate-900 dark:bg-slate-700 px-2 py-0.5 text-xs font-bold text-white">
                           #TXN-{txn.id}
                         </span>
-                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                          {txn.crop || "Fresh Produce"} - {txn.quantity ? `${txn.quantity} kg` : "Batch"}
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                          {txn.crop || "Produce"} - {txn.quantity ? `${txn.quantity} kg` : "Batch"}
                         </h3>
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${
+                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${
                             isReleased
-                              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400"
-                              : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 animate-pulse"
+                              ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60"
+                              : "bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60"
                           }`}
                         >
                           {isReleased ? t.statusReleased : t.statusEscrowed}
                         </span>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                        <span>👨‍🌾 {t.farmer}: <strong>{txn.farmer_name || "Verified Farmer"}</strong></span>
-                        <span>💳 {t.farmerUpi}: <strong className="font-mono text-cyan-600 dark:text-cyan-400">{txn.farmer_upi || "farmer@upi"}</strong></span>
-                        <span>👤 {t.buyer}: <strong>{txn.buyer_name || "Wholesale Buyer"}</strong></span>
-                        <span>📅 Date: <strong>{new Date(txn.created_at).toLocaleDateString()}</strong></span>
+                      <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        <span>👨‍🌾 {t.farmer}: <strong className="text-slate-800 dark:text-slate-200">{txn.farmer_name || "Farmer"}</strong></span>
+                        <span>💳 {t.farmerUpi}: <strong className="font-mono text-slate-700 dark:text-slate-300">{txn.farmer_upi || "farmer@upi"}</strong></span>
+                        <span>👤 {t.buyer}: <strong className="text-slate-800 dark:text-slate-200">{txn.buyer_name || "Buyer"}</strong></span>
+                        <span>📅 {new Date(txn.created_at).toLocaleDateString()}</span>
                       </div>
 
                       {txn.escrow_hash && (
-                        <div className="mt-2 text-[10px] font-mono text-slate-400 truncate max-w-md">
-                          SHA-256 State Hash: {txn.escrow_hash}
-                        </div>
+                        <p className="mt-1.5 text-[10px] font-mono text-slate-400 truncate max-w-sm">
+                          State Hash: {txn.escrow_hash.slice(0, 24)}...
+                        </p>
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:items-end gap-2.5 shrink-0">
+                    <div className="flex flex-col sm:items-end gap-2 shrink-0">
                       <div className="sm:text-right">
-                        <span className="text-[11px] font-bold text-slate-400">{t.orderAmount}</span>
-                        <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                        <span className="text-[10px] font-medium text-slate-400">{t.orderAmount}</span>
+                        <div className="text-lg font-bold text-slate-900 dark:text-white">
                           ₹{Number(txn.total_amount || 0).toLocaleString("en-IN")}
                         </div>
                       </div>
@@ -1044,16 +952,16 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
                           <button
                             onClick={() => handleConfirmDelivery(txn)}
                             disabled={releasingId === txn.id}
-                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-xs font-black text-white shadow-md hover:opacity-95 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-bold text-white transition-colors disabled:opacity-50"
                           >
                             {releasingId === txn.id ? (
                               <>
-                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                <RefreshCw className="h-3 w-3 animate-spin" />
                                 <span>{t.releasingPayment}</span>
                               </>
                             ) : (
                               <>
-                                <CheckCircle2 className="h-4 w-4" />
+                                <CheckCircle2 className="h-3.5 w-3.5" />
                                 <span>{t.confirmDeliveryBtn}</span>
                               </>
                             )}
@@ -1068,18 +976,18 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenBill, t }) {
                                 amount: txn.total_amount
                               })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-300"
+                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
                           >
-                            <QrCode className="h-3.5 w-3.5" />
+                            <QrCode className="h-3.5 w-3.5 text-emerald-600" />
                             <span>{t.viewUpiQrBtn}</span>
                           </button>
                         )}
 
                         <button
                           onClick={() => onOpenBill(txn.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                          className="inline-flex items-center gap-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                         >
-                          <FileText className="h-3.5 w-3.5 text-cyan-600" />
+                          <FileText className="h-3 w-3 text-slate-400" />
                           <span>{t.viewBillOfSupply}</span>
                         </button>
                       </div>
@@ -1113,55 +1021,55 @@ function UpiSettlementModal({ settlement, onClose, t }) {
     `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(settlement.farmerName || 'Farmer')}&am=${amount}&cu=INR&tn=FARLX+Order+${settlement.id}`;
   const qrUrl =
     settlement.qrCodeUrl ||
-    `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiUri)}`;
+    `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(upiUri)}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-2xl text-slate-900 dark:text-white"
+        exit={{ opacity: 0, scale: 0.98 }}
+        className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 text-center shadow-xl text-slate-900 dark:text-white"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 className="h-8 w-8" />
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600">
+          <CheckCircle2 className="h-6 w-6" />
         </div>
 
-        <h3 className="mt-3 text-lg font-black">{t.upiModalTitle}</h3>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t.upiModalDesc}</p>
+        <h3 className="mt-2.5 text-base font-bold">{t.upiModalTitle}</h3>
+        <p className="mt-1 text-xs text-slate-500">{t.upiModalDesc}</p>
 
-        <div className="my-5 flex flex-col items-center justify-center">
-          <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-md">
-            <img src={qrUrl} alt="UPI QR Code" className="h-52 w-52 rounded-lg" />
+        <div className="my-4 flex flex-col items-center justify-center">
+          <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-xs">
+            <img src={qrUrl} alt="UPI QR Code" className="h-44 w-44 rounded" />
           </div>
-          <span className="mt-2 text-[11px] font-bold text-slate-500">{t.scanQrInstruction}</span>
+          <span className="mt-1.5 text-[10px] font-medium text-slate-400">{t.scanQrInstruction}</span>
         </div>
 
-        <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3.5 text-xs text-left space-y-1.5 font-medium">
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 text-xs text-left space-y-1 font-medium">
           <div className="flex justify-between">
-            <span className="text-slate-400">Beneficiary Farmer:</span>
+            <span className="text-slate-400">Farmer:</span>
             <span className="font-bold text-slate-800 dark:text-slate-200">{settlement.farmerName || "Farmer"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Farmer UPI VPA:</span>
-            <span className="font-mono font-bold text-cyan-600">{upiId}</span>
+            <span className="text-slate-400">UPI ID:</span>
+            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{upiId}</span>
           </div>
           <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
-            <span className="text-slate-400">Amount Released:</span>
-            <span className="font-black text-emerald-600 text-sm">₹{Number(amount).toLocaleString('en-IN')}</span>
+            <span className="text-slate-400">Released:</span>
+            <span className="font-bold text-emerald-600 text-sm">₹{Number(amount).toLocaleString('en-IN')}</span>
           </div>
         </div>
 
-        <div className="mt-5 flex gap-2.5">
+        <div className="mt-4 flex gap-2">
           <a
             href={upiUri}
-            className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-3 text-xs font-black text-white shadow-md hover:opacity-95"
+            className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-bold text-white transition-colors"
           >
             {t.openUpiAppBtn}
           </a>
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             {t.closeBtn}
           </button>
@@ -1188,68 +1096,64 @@ function DigitalBillModal({ txnId, onClose, t }) {
   }, [txnId]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl text-slate-900 dark:text-white"
+        exit={{ opacity: 0, scale: 0.98 }}
+        className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xl text-slate-900 dark:text-white"
       >
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-emerald-600" />
-            <h3 className="text-base font-black">{t.billModalTitle}</h3>
+            <FileText className="h-4.5 w-4.5 text-emerald-600" />
+            <h3 className="text-sm font-bold">{t.billModalTitle}</h3>
           </div>
-          <button onClick={onClose} className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
-            <X className="h-5 w-5" />
+          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {loading || !bill ? (
-          <div className="py-12 text-center text-xs text-slate-400">
-            <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-emerald-500" />
-            Generating verifiable cryptographic invoice...
+          <div className="py-10 text-center text-xs text-slate-400">
+            <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-emerald-600" />
+            Generating verifiable tax invoice...
           </div>
         ) : (
-          <div className="mt-5 space-y-4 text-xs">
-            {/* Header */}
-            <div className="flex justify-between items-start bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl">
+          <div className="mt-4 space-y-3 text-xs">
+            <div className="flex justify-between items-start bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
               <div>
-                <span className="font-black text-base text-emerald-600">FARLX PROTOCOL</span>
-                <p className="text-[10px] text-slate-500">Decentralized Direct Agriculture Trade</p>
-                <p className="mt-2 font-mono font-bold">{bill.invoiceNumber}</p>
+                <span className="font-black text-sm text-emerald-600">FARLX SMART PROTOCOL</span>
+                <p className="text-[10px] text-slate-400 font-mono mt-0.5">{bill.invoiceNumber}</p>
               </div>
               <div className="text-right">
-                <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 text-[10px] font-black text-emerald-700 dark:text-emerald-400">
+                <span className="rounded bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[9px] font-bold text-emerald-700 dark:text-emerald-400">
                   {bill.escrowVerification.status}
                 </span>
-                <p className="mt-2 text-slate-400">{t.billDate}: {new Date(bill.date).toLocaleDateString()}</p>
+                <p className="mt-1 text-slate-400 text-[10px]">{t.billDate}: {new Date(bill.date).toLocaleDateString()}</p>
               </div>
             </div>
 
-            {/* Farmer & Buyer info */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="border border-slate-200 dark:border-slate-700/60 p-3.5 rounded-2xl">
-                <p className="font-black text-slate-400 uppercase text-[10px]">{t.farmerInfo}</p>
-                <p className="font-bold text-sm mt-1">{bill.farmer.name}</p>
-                <p className="text-slate-500">{bill.farmer.village}</p>
-                <p className="font-mono text-cyan-600 mt-1">{bill.farmer.upi}</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="border border-slate-200 dark:border-slate-800 p-3 rounded-xl">
+                <p className="font-bold text-slate-400 uppercase text-[9px]">{t.farmerInfo}</p>
+                <p className="font-bold mt-0.5">{bill.farmer.name}</p>
+                <p className="text-slate-500 text-[11px]">{bill.farmer.village}</p>
+                <p className="font-mono text-slate-600 dark:text-slate-400 text-[10px] mt-0.5">{bill.farmer.upi}</p>
               </div>
 
-              <div className="border border-slate-200 dark:border-slate-700/60 p-3.5 rounded-2xl">
-                <p className="font-black text-slate-400 uppercase text-[10px]">{t.buyerInfo}</p>
-                <p className="font-bold text-sm mt-1">{bill.buyer.name}</p>
-                <p className="text-emerald-600 font-bold mt-1">Verified Wholesale Consignee</p>
+              <div className="border border-slate-200 dark:border-slate-800 p-3 rounded-xl">
+                <p className="font-bold text-slate-400 uppercase text-[9px]">{t.buyerInfo}</p>
+                <p className="font-bold mt-0.5">{bill.buyer.name}</p>
+                <p className="text-emerald-600 text-[10px] font-medium mt-0.5">Verified Wholesale Consignee</p>
               </div>
             </div>
 
-            {/* Item Table */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden">
-              <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 font-black flex justify-between">
-                <span>Description</span>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 font-bold flex justify-between text-[11px]">
+                <span>Produce & Grade</span>
                 <span>Amount</span>
               </div>
-              <div className="p-4 space-y-2">
+              <div className="p-3 space-y-1">
                 <div className="flex justify-between font-bold">
                   <span>{bill.produce.crop} ({bill.produce.grade})</span>
                   <span>₹{Number(bill.produce.totalAmount).toLocaleString('en-IN')}</span>
@@ -1258,27 +1162,26 @@ function DigitalBillModal({ txnId, onClose, t }) {
                   <span>{bill.produce.quantityKg} kg @ ₹{bill.produce.ratePerKg}/kg</span>
                   <span>GST: 0% (Exempt)</span>
                 </div>
-                <p className="text-[10px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <p className="text-[10px] text-slate-400 pt-1.5 border-t border-slate-100 dark:border-slate-800">
                   {bill.produce.gstExemption}
                 </p>
               </div>
             </div>
 
-            {/* Cryptographic Hash */}
-            <div className="bg-slate-900 text-slate-300 p-3.5 rounded-2xl font-mono text-[10px] space-y-1">
+            <div className="bg-slate-900 text-slate-300 p-3 rounded-xl font-mono text-[9px]">
               <p className="text-emerald-400 font-bold">{t.escrowAuditHash}:</p>
-              <p className="break-all">{bill.escrowVerification.stateHash}</p>
+              <p className="break-all mt-0.5 text-slate-400">{bill.escrowVerification.stateHash}</p>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 onClick={() => window.print()}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-emerald-600 py-3 text-xs font-black text-white hover:opacity-90"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-500 py-2.5 text-xs font-bold text-white"
               >
-                <Printer className="h-4 w-4" />
+                <Printer className="h-3.5 w-3.5" />
                 <span>{t.printInvoice}</span>
               </button>
-              <button onClick={onClose} className="rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 font-bold text-xs">
+              <button onClick={onClose} className="rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-semibold">
                 {t.closeBtn}
               </button>
             </div>
@@ -1289,11 +1192,10 @@ function DigitalBillModal({ txnId, onClose, t }) {
   );
 }
 
-// ----------------- AI CROP QUALITY INSPECTOR PAGE -----------------
+// ----------------- AI CROP QUALITY INSPECTOR -----------------
 
 function AiQualityInspectorPage({ t }) {
   const [analyzing, setAnalyzing] = useState(false);
-  const [selectedCrop, setSelectedCrop] = useState("Tomato");
   const [analysis, setAnalysis] = useState({
     crop: "Tomato",
     grade: "Grade A+ (Export Quality)",
@@ -1301,15 +1203,13 @@ function AiQualityInspectorPage({ t }) {
     defectPercentage: 1.2,
     estimatedShelfLife: "7 - 9 Days",
     moistureIndex: "91.5% (Optimal)",
-    sugarBrix: "4.8° Brix (High Sweetness)",
-    commercialFit: "Premium retail supermarkets, hypermarkets, and export aggregators.",
-    certificateHash: "8a4f912c98d41e77",
-    timestamp: new Date().toISOString()
+    sugarBrix: "4.8° Brix",
+    commercialFit: "Supermarkets, hypermarkets, and export aggregators.",
+    certificateHash: "8a4f912c98d41e77"
   });
 
   const runAnalysis = async (cropName) => {
     setAnalyzing(true);
-    setSelectedCrop(cropName);
     try {
       const res = await fetch(`${API_BASE}/api/ai-grade`, {
         method: "POST",
@@ -1321,7 +1221,7 @@ function AiQualityInspectorPage({ t }) {
         setTimeout(() => {
           setAnalysis(data.analysis);
           setAnalyzing(false);
-        }, 800);
+        }, 600);
       }
     } catch (e) {
       setAnalyzing(false);
@@ -1329,44 +1229,43 @@ function AiQualityInspectorPage({ t }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-400">
-            <Bot className="h-3.5 w-3.5" />
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <Bot className="h-3 w-3 text-emerald-600" />
             <span>Computer Vision AI</span>
           </div>
-          <h2 className="mt-2 text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{t.aiPageTitle}</h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{t.aiPageSubtitle}</p>
+          <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.aiPageTitle}</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{t.aiPageSubtitle}</p>
         </div>
 
-        {/* Upload & Sample Selector */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          <div className="rounded-2xl border-2 border-dashed border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/10 p-6 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
-              <UploadCloud className="h-7 w-7" />
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+          <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-5 text-center">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-emerald-600 shadow-xs border border-slate-200 dark:border-slate-700">
+              <UploadCloud className="h-5 w-5" />
             </div>
-            <h4 className="mt-3 text-sm font-black text-slate-800 dark:text-white">{t.uploadPhotoPrompt}</h4>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t.uploadHelp}</p>
+            <h4 className="mt-2.5 text-xs font-bold text-slate-800 dark:text-white">{t.uploadPhotoPrompt}</h4>
+            <p className="mt-0.5 text-[11px] text-slate-400">{t.uploadHelp}</p>
 
-            <div className="mt-5">
-              <p className="text-[11px] font-bold text-slate-400 mb-2">{t.samplePhotos}</p>
-              <div className="flex flex-wrap justify-center gap-2">
+            <div className="mt-4">
+              <p className="text-[10px] font-semibold text-slate-400 mb-1.5">{t.samplePhotos}</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
                 <button
                   onClick={() => runAnalysis("Tomato")}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold hover:border-emerald-500 transition-all"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-emerald-500"
                 >
                   {t.sampleTomato}
                 </button>
                 <button
                   onClick={() => runAnalysis("Onion")}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold hover:border-emerald-500 transition-all"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-emerald-500"
                 >
                   {t.sampleOnion}
                 </button>
                 <button
                   onClick={() => runAnalysis("Potato")}
-                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-bold hover:border-emerald-500 transition-all"
+                  className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-medium hover:border-emerald-500"
                 >
                   {t.samplePotato}
                 </button>
@@ -1374,54 +1273,49 @@ function AiQualityInspectorPage({ t }) {
             </div>
           </div>
 
-          {/* Analysis Certificate Display */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/90 p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-emerald-500" />
-                <h4 className="text-sm font-black text-slate-900 dark:text-white">{t.qualityAnalysisResult}</h4>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+              <div className="flex items-center gap-1.5">
+                <Award className="h-4 w-4 text-emerald-600" />
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">{t.qualityAnalysisResult}</h4>
               </div>
-              <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 text-[10px] font-black text-emerald-800 dark:text-emerald-400">
+              <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
                 Verified
               </span>
             </div>
 
             {analyzing ? (
-              <div className="py-12 text-center text-xs text-slate-400 space-y-2">
-                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-emerald-500" />
-                <p className="font-bold">{t.analyzingImage}</p>
+              <div className="py-8 text-center text-xs text-slate-400 space-y-1.5">
+                <RefreshCw className="h-5 w-5 animate-spin mx-auto text-emerald-600" />
+                <p className="font-semibold">{t.analyzingImage}</p>
               </div>
             ) : (
-              <div className="space-y-3 text-xs">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl">
-                    <span className="text-slate-400">{t.overallGrade}</span>
-                    <div className="text-base font-black text-emerald-600 dark:text-emerald-400">{analysis.grade}</div>
+              <div className="space-y-2.5 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
+                    <span className="text-slate-400 text-[11px]">{t.overallGrade}</span>
+                    <div className="text-sm font-bold text-emerald-600 mt-0.5">{analysis.grade}</div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl">
-                    <span className="text-slate-400">{t.freshnessScore}</span>
-                    <div className="text-base font-black text-slate-900 dark:text-white">{analysis.freshnessScore}%</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl">
-                    <span className="text-slate-400">{t.defectRate}</span>
-                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{analysis.defectPercentage}% (Negligible)</div>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl">
-                    <span className="text-slate-400">{t.estimatedShelfLife}</span>
-                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{analysis.estimatedShelfLife}</div>
+                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
+                    <span className="text-slate-400 text-[11px]">{t.freshnessScore}</span>
+                    <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{analysis.freshnessScore}%</div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl">
-                  <span className="text-slate-400">{t.recommendation}</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
+                    <span className="text-slate-400 text-[11px]">{t.defectRate}</span>
+                    <div className="font-medium text-slate-800 dark:text-slate-200 mt-0.5">{analysis.defectPercentage}% (Clean)</div>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
+                    <span className="text-slate-400 text-[11px]">{t.estimatedShelfLife}</span>
+                    <div className="font-medium text-slate-800 dark:text-slate-200 mt-0.5">{analysis.estimatedShelfLife}</div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg">
+                  <span className="text-slate-400 text-[11px]">{t.recommendation}</span>
                   <p className="font-medium text-slate-700 dark:text-slate-300 mt-0.5">{analysis.commercialFit}</p>
-                </div>
-
-                <div className="text-[10px] font-mono text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-700">
-                  {t.certificateHash}: {analysis.certificateHash}
                 </div>
               </div>
             )}
@@ -1432,7 +1326,7 @@ function AiQualityInspectorPage({ t }) {
   );
 }
 
-// ----------------- MANDI PRICE INTELLIGENCE PAGE -----------------
+// ----------------- MANDI PRICE INTELLIGENCE -----------------
 
 function MandiAdvisorPage({ t }) {
   const [mandiPrices, setMandiPrices] = useState([]);
@@ -1447,43 +1341,42 @@ function MandiAdvisorPage({ t }) {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-400">
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span>Agmarknet Mandi Integration</span>
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <BarChart3 className="h-3 w-3 text-emerald-600" />
+            <span>APMC Agmarknet Benchmarks</span>
           </div>
-          <h2 className="mt-2 text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{t.mandiTitle}</h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{t.mandiSubtitle}</p>
+          <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.mandiTitle}</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{t.mandiSubtitle}</p>
         </div>
 
-        {/* Mandi table */}
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase font-black text-[11px]">
+            <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold text-[11px] border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="p-4">Crop</th>
-                <th className="p-4">State & APMC Mandi</th>
-                <th className="p-4">{t.mandiRate}</th>
-                <th className="p-4">{t.farlxRate}</th>
-                <th className="p-4">{t.extraEarnings}</th>
-                <th className="p-4">Mandi Arrival</th>
+                <th className="p-3">Crop</th>
+                <th className="p-3">Mandi</th>
+                <th className="p-3">{t.mandiRate}</th>
+                <th className="p-3">{t.farlxRate}</th>
+                <th className="p-3">{t.extraEarnings}</th>
+                <th className="p-3">Arrival</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200 font-medium">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
               {mandiPrices.map((m, idx) => (
-                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="p-4 font-black text-slate-900 dark:text-white">{m.crop}</td>
-                  <td className="p-4">{m.mandi} ({m.state})</td>
-                  <td className="p-4 font-mono">₹{m.mandiRate.toFixed(2)}/kg</td>
-                  <td className="p-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{m.farlxRate.toFixed(2)}/kg</td>
-                  <td className="p-4">
-                    <span className="rounded-md bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-xs font-black text-emerald-700 dark:text-emerald-400">
+                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                  <td className="p-3 font-bold text-slate-900 dark:text-white">{m.crop}</td>
+                  <td className="p-3">{m.mandi} ({m.state})</td>
+                  <td className="p-3 font-mono">₹{m.mandiRate.toFixed(2)}/kg</td>
+                  <td className="p-3 font-mono font-bold text-emerald-600">₹{m.farlxRate.toFixed(2)}/kg</td>
+                  <td className="p-3">
+                    <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 text-xs font-bold">
                       {m.difference}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-400">{m.arrivalVolume}</td>
+                  <td className="p-3 text-slate-400">{m.arrivalVolume}</td>
                 </tr>
               ))}
             </tbody>
@@ -1494,7 +1387,7 @@ function MandiAdvisorPage({ t }) {
   );
 }
 
-// ----------------- KISAN LOGISTICS POOLING PAGE -----------------
+// ----------------- KISAN LOGISTICS POOLING -----------------
 
 function LogisticsPoolPage({ t }) {
   const [pools, setPools] = useState([]);
@@ -1509,65 +1402,64 @@ function LogisticsPoolPage({ t }) {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950 px-3 py-1 text-xs font-black text-emerald-700 dark:text-emerald-400">
-            <Truck className="h-3.5 w-3.5" />
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <Truck className="h-3 w-3 text-emerald-600" />
             <span>Kisan Freight Pooling</span>
           </div>
-          <h2 className="mt-2 text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{t.logisticsTitle}</h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{t.logisticsSubtitle}</p>
+          <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{t.logisticsTitle}</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{t.logisticsSubtitle}</p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           {pools.map((p) => (
             <div
               key={p.id}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 p-5 shadow-sm space-y-4 hover:shadow-md transition-all"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 p-4 shadow-xs space-y-3"
             >
               <div className="flex items-center justify-between">
-                <span className="rounded-md bg-slate-900 dark:bg-slate-700 px-2 py-0.5 text-xs font-black text-white">
+                <span className="rounded bg-slate-900 dark:bg-slate-700 px-2 py-0.5 text-xs font-bold text-white">
                   {p.id}
                 </span>
-                <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[10px] font-black text-emerald-700 dark:text-emerald-400">
+                <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
                   {p.status}
                 </span>
               </div>
 
               <div>
-                <h4 className="text-sm font-black text-slate-900 dark:text-white">{p.cluster}</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400">➔ {p.destination}</p>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{p.cluster}</h4>
+                <p className="text-xs text-slate-500">➔ {p.destination}</p>
               </div>
 
-              {/* Progress bar */}
               <div>
-                <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
+                <div className="flex justify-between text-xs font-medium text-slate-500 mb-1">
                   <span>{t.truckCapacity}</span>
-                  <span>{p.utilizationPct}% ({p.currentLoadedKg} / {p.capacityKg} kg)</span>
+                  <span>{p.utilizationPct}% ({p.currentLoadedKg} kg)</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                    className="h-full bg-emerald-600 rounded-full"
                     style={{ width: `${p.utilizationPct}%` }}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
+              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-lg">
                 <div>
-                  <span className="text-slate-400">{t.savingsPerFarmer}:</span>
-                  <div className="font-black text-emerald-600">{p.avgSavingsPerFarmer}</div>
+                  <span className="text-slate-400 text-[10px]">{t.savingsPerFarmer}:</span>
+                  <div className="font-bold text-emerald-600">{p.avgSavingsPerFarmer}</div>
                 </div>
                 <div>
-                  <span className="text-slate-400">{t.carbonReduced}:</span>
-                  <div className="font-bold text-slate-700 dark:text-slate-200">{p.co2SavedKg}</div>
+                  <span className="text-slate-400 text-[10px]">{t.carbonReduced}:</span>
+                  <div className="font-bold text-slate-700 dark:text-slate-300">{p.co2SavedKg}</div>
                 </div>
               </div>
 
               <button
-                onClick={() => alert(`Request submitted to join ${p.cluster} freight pool. Driver dispatch notified.`)}
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 py-2.5 text-xs font-black text-slate-800 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+                onClick={() => alert(`Request submitted for ${p.cluster} freight pool.`)}
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 py-2 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 {t.joinPoolBtn}
               </button>
@@ -1588,11 +1480,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBillTxnId, setSelectedBillTxnId] = useState(null);
 
-  // Language state (persisted)
+  // Language state
   const [lang, setLang] = useState(() => localStorage.getItem("farlx_lang") || "en");
   const t = translations[lang] || translations.en;
 
-  // Theme state (persisted)
+  // Theme state
   const [theme, setTheme] = useState(() => localStorage.getItem("farlx_theme") || "light");
 
   const handleToggleTheme = (newTheme) => {
@@ -1624,9 +1516,6 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
-
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const fetchLiveData = async () => {
     try {
@@ -1693,7 +1582,7 @@ export default function App() {
   const renderPage = () => {
     if (activeNav === "Home") {
       return (
-        <div className="space-y-8">
+        <div className="space-y-6">
           <HeroBanner
             onExplore={() => setActiveNav("Market")}
             onOpenOrders={() => setActiveNav("Buy & Sell")}
@@ -1701,22 +1590,21 @@ export default function App() {
           />
           <StatsGrid liveStats={liveStats} t={t} />
 
-          {/* Section: Live Harvests */}
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white">{t.trendingCrops}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{t.verifiedDirect}</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.trendingCrops}</h3>
+                <p className="text-xs text-slate-500">{t.verifiedDirect}</p>
               </div>
               <button
                 onClick={() => setActiveNav("Market")}
-                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                className="text-xs font-semibold text-emerald-600 hover:underline"
               >
                 {t.exploreMarket} →
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredListings.slice(0, 6).map((item) => (
                 <CropCard key={item.id} listing={item} onView={(l) => setSelectedListing(l)} t={t} />
               ))}
@@ -1728,19 +1616,19 @@ export default function App() {
 
     if (activeNav === "Market") {
       return (
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{t.marketTitle}</h2>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{t.marketSubtitle}</p>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t.marketTitle}</h2>
+                <p className="text-xs text-slate-500">{t.marketSubtitle}</p>
               </div>
-              <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="text-xs font-semibold text-emerald-600">
                 {filteredListings.length} {t.statsActiveListings}
               </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredListings.map((item) => (
                 <CropCard key={item.id} listing={item} onView={(l) => setSelectedListing(l)} t={t} />
               ))}
@@ -1774,16 +1662,16 @@ export default function App() {
     }
 
     return (
-      <div className="p-12 text-center rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <h3 className="text-lg font-black">{activeNav}</h3>
+      <div className="p-8 text-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850">
+        <h3 className="text-base font-bold">{activeNav}</h3>
         <p className="text-xs text-slate-500 mt-1">Live data viewable at /live-data</p>
       </div>
     );
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 lg:flex ${
-      theme === "dark" ? "bg-[#0B1120] text-slate-100" : "bg-[#F4F7FB] text-slate-900"
+    <div className={`min-h-screen transition-colors duration-150 lg:flex ${
+      theme === "dark" ? "bg-[#090D16] text-slate-100" : "bg-[#F8FAFC] text-slate-900"
     }`}>
       <Sidebar
         active={activeNav}
@@ -1793,8 +1681,6 @@ export default function App() {
         t={t}
         theme={theme}
         onToggleTheme={handleToggleTheme}
-        lang={lang}
-        onSelectLang={handleSelectLang}
       />
 
       <div className="min-w-0 flex-1">
@@ -1804,7 +1690,6 @@ export default function App() {
           notifications={notifications}
           unreadCount={unreadNotifs}
           onClearNotifications={handleClearNotifications}
-          onOpenOrders={() => setActiveNav("Buy & Sell")}
           onSeedDemo={handleSeedDemo}
           theme={theme}
           onToggleTheme={handleToggleTheme}
@@ -1813,8 +1698,8 @@ export default function App() {
           t={t}
         />
 
-        <main className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10">
-          <div className="mx-auto w-full max-w-[1720px]">{renderPage()}</div>
+        <main className="w-full px-4 py-6 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+          {renderPage()}
         </main>
       </div>
 
