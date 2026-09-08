@@ -962,6 +962,32 @@ app.get("/api/logistics/pools", (req, res) => {
   res.json({ success: true, pools });
 });
 
+// Farmers List (Registered via Telegram @FarlX_bot)
+app.get("/api/farmers", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         f.id,
+         f.name,
+         f.age,
+         f.phone,
+         f.village,
+         f.telegram_chat_id,
+         f.upi_id,
+         f.language,
+         f.created_at,
+         COUNT(l.id) AS listing_count
+       FROM farmers f
+       LEFT JOIN listings l ON l.farmer_id = f.id
+       GROUP BY f.id
+       ORDER BY f.id DESC`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch farmers: " + error.message });
+  }
+});
+
 // Listings List
 app.get("/api/listings", async (req, res) => {
   try {

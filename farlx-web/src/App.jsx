@@ -1237,6 +1237,8 @@ function StatsGrid({ liveStats, isDark = false, lang = "en" }) {
 
 function ListingCard({ listing, onView, compact = false, isDark = false, lang = "en" }) {
   const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
+  const isSold = listing.status === "sold";
+
   return (
     <motion.article
       whileHover={{ y: -8 }}
@@ -1246,53 +1248,64 @@ function ListingCard({ listing, onView, compact = false, isDark = false, lang = 
       }`}
     >
       <div
-        className={`relative flex h-[160px] items-center justify-center overflow-hidden bg-gradient-to-br ${listing.softGradient} text-6xl`}
+        className={`relative flex h-[160px] items-center justify-center overflow-hidden text-6xl ${
+          isDark
+            ? "bg-gradient-to-br from-slate-900 via-slate-850 to-[#111C32] border-b border-slate-800"
+            : `bg-gradient-to-br ${listing.softGradient}`
+        }`}
       >
         <div
           className={`absolute -right-8 -top-8 h-28 w-28 rounded-full bg-gradient-to-br ${listing.gradient} opacity-25 blur-2xl`}
         />
         <div className="absolute -bottom-10 -left-8 h-28 w-28 rounded-full bg-white/70 blur-2xl" />
 
-        <span className="relative transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+        <span className="relative transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 select-none">
           {listing.image}
         </span>
 
-        <div className="absolute left-4 top-4 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-700 shadow-sm backdrop-blur">
-          {listing.badge}
+        <div className="absolute left-4 top-4">
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide backdrop-blur shadow-sm ${
+            isSold
+              ? (isDark ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-amber-100 text-amber-900 border border-amber-200")
+              : (isDark ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-white/95 text-emerald-800 border border-emerald-200")
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${isSold ? "bg-amber-400" : "bg-emerald-500 animate-pulse"}`} />
+            {isSold ? "In Escrow / Sold" : "Live Telegram Supply"}
+          </span>
         </div>
 
         <div className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full bg-slate-950/80 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
           <BadgeCheck className="h-3.5 w-3.5 text-emerald-300" />
-          {t("verified", "Verified")}
+          {t("verified", "Verified Farmer")}
         </div>
       </div>
 
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className={"text-lg font-black " + (isDark ? "text-white" : "text-slate-900")}>
+            <h3 className={"text-lg font-black tracking-tight " + (isDark ? "text-white" : "text-slate-900")}>
               {listing.crop}
             </h3>
 
             <p className={"mt-1 flex items-center gap-1 text-xs font-medium " + (isDark ? "text-slate-400" : "text-slate-500")}>
-              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+              <MapPin className="h-3.5 w-3.5 text-emerald-500" />
               {listing.region}
             </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-xs font-black text-amber-500 dark:text-amber-400">
             <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-            {listing.quality}
+            {listing.quality || "Grade A+"}
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p className={"text-xs font-semibold " + (isDark ? "text-slate-400" : "text-slate-500")}>
-            {listing.farmer}
+        <div className="mt-3 flex items-center justify-between gap-3 border-t pt-2.5 border-slate-100 dark:border-slate-800/80">
+          <p className={"text-xs font-semibold flex items-center gap-1 " + (isDark ? "text-slate-300" : "text-slate-700")}>
+            <span className="text-slate-400 font-normal">Farmer:</span> {listing.farmer}
           </p>
 
           <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-black text-emerald-500 dark:text-emerald-400">
-            {listing.matching}% {t("match", "match")}
+            {listing.matching || 96}% {t("match", "match")}
           </span>
         </div>
 
@@ -1328,9 +1341,13 @@ function ListingCard({ listing, onView, compact = false, isDark = false, lang = 
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => onView(listing)}
-            className={"inline-flex h-10 items-center gap-1 rounded-xl px-3.5 text-sm font-bold text-white transition-colors " + (isDark ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-900 hover:bg-teal-700")}
+            className={"inline-flex h-10 items-center gap-1 rounded-xl px-3.5 text-sm font-bold text-white transition-colors shadow-sm " + (
+              isSold
+                ? "bg-amber-600 hover:bg-amber-500"
+                : (isDark ? "bg-emerald-600 hover:bg-emerald-500" : "bg-slate-900 hover:bg-teal-700")
+            )}
           >
-            {t("viewBtn", "View")}
+            {isSold ? "View Escrow" : t("viewBtn", "View & Bid")}
             <ArrowUpRight className="h-4 w-4" />
           </motion.button>
         </div>
@@ -1343,11 +1360,28 @@ function FeaturedListings({ currentListings, onView, onExplore, isDark = false, 
   const t = (k, def) => (translations[lang] && translations[lang][k]) || (translations.en && translations.en[k]) || def;
   const displayListings = useMemo(() => {
     const base = (currentListings && currentListings.length > 0) ? currentListings : listings;
-    return [...base].sort((a, b) => {
+    // Group to show diverse crops from verified farmers (active first)
+    const seenCrops = new Set();
+    const diverse = [];
+    const remaining = [];
+
+    const sorted = [...base].sort((a, b) => {
       if (a.status === "active" && b.status !== "active") return -1;
       if (a.status !== "active" && b.status === "active") return 1;
       return (b.id || 0) - (a.id || 0);
     });
+
+    for (const item of sorted) {
+      const cropNorm = (item.crop || "").toLowerCase().trim();
+      if (!seenCrops.has(cropNorm)) {
+        seenCrops.add(cropNorm);
+        diverse.push(item);
+      } else {
+        remaining.push(item);
+      }
+    }
+
+    return [...diverse, ...remaining];
   }, [currentListings]);
 
   return (
