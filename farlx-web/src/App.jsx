@@ -65,10 +65,7 @@ import {
   ListFilter,
   QrCode,
   RefreshCw,
-  Smartphone,
-  Sun,
-  Moon,
-  Globe
+  Smartphone
 } from "lucide-react";
 import {
   AreaChart,
@@ -84,7 +81,6 @@ import {
 } from "recharts";
 
 import LiveData from "./pages/LiveData";
-import { translations } from "./translations";
 
 
 const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
@@ -656,7 +652,7 @@ function TopBar({
   const [notifOpen, setNotifOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 min-h-[74px] border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-[#0D1424]/90 backdrop-blur-xl transition-colors">
+    <header className="sticky top-0 z-30 min-h-[74px] border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="flex min-h-[74px] w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
         <button
           onClick={onMenu}
@@ -667,13 +663,13 @@ function TopBar({
         </button>
 
         <div className="hidden min-w-0 flex-1 md:block">
-          <label className="flex h-11 w-full max-w-[420px] items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 px-4 transition-all duration-200 focus-within:border-emerald-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-emerald-500/20">
+          <label className="flex h-11 w-full max-w-[420px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 transition-all duration-200 focus-within:border-cyan-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-cyan-100">
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
             <input
               type="text"
               placeholder="Search crops, farmers, locations..."
               onChange={(event) => onSearch(event.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 dark:text-slate-100 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
             />
           </label>
         </div>
@@ -709,58 +705,11 @@ function TopBar({
             <span className="text-xs font-bold text-emerald-700">Live Sync</span>
           </div>
 
-          {/* Language Selector Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setLangOpen(!langOpen)}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800"
-              title="Select Language"
-            >
-              <Globe className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{languages.find((l) => l.code === lang)?.short || "EN"}</span>
-            </button>
-
-            {langOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                <div className="absolute right-0 top-12 z-50 w-36 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1424] shadow-xl">
-                  {languages.map((item) => (
-                    <button
-                      key={item.code}
-                      onClick={() => {
-                        if (onSelectLang) onSelectLang(item.code);
-                        setLangOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-bold transition-colors ${
-                        lang === item.code
-                          ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300"
-                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      <span>{item.label}</span>
-                      {lang === item.code && <Check className="h-3.5 w-3.5 text-emerald-600" />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Light / Dark Mode Toggle Button */}
-          <button
-            onClick={onToggleTheme}
-            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 text-slate-700 dark:text-amber-400 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            aria-label="Toggle Theme"
-          >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4 text-slate-600" />}
-          </button>
-
           {/* Functional Notification Button & Dropdown */}
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 text-slate-600 dark:text-slate-300 shadow-xs transition-all hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-400"
+              className="relative rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700"
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
@@ -783,7 +732,7 @@ function TopBar({
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 top-12 z-50 w-80 sm:w-96 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1424] shadow-2xl"
+                    className="absolute right-0 top-12 z-50 w-80 sm:w-96 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300"
                   >
                     <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-900 to-[#071A2B] px-4 py-3.5 text-white">
                       <div className="flex items-center gap-2">
@@ -891,7 +840,7 @@ function SectionHeading({ title, description, action, icon: Icon }) {
             </span>
           )}
 
-          <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h2 className="text-xl font-black tracking-tight text-slate-900">
             {title}
           </h2>
         </div>
@@ -1104,7 +1053,7 @@ function StatsGrid({ liveStats }) {
             variants={itemReveal}
             whileHover={{ y: -4 }}
             key={stat.label}
-            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0D1424] p-6 shadow-xs transition-all duration-300 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-xl"
+            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:border-cyan-200 hover:shadow-xl hover:shadow-slate-200/80"
           >
             <div className="flex items-start justify-between gap-3">
               <div
@@ -1119,10 +1068,10 @@ function StatsGrid({ liveStats }) {
               </span>
             </div>
 
-            <div className="mt-5 text-[26px] font-black tracking-tight text-slate-900 dark:text-white">
+            <div className="mt-5 text-[26px] font-black tracking-tight text-slate-900">
               {stat.value}
             </div>
-            <div className="mt-1 text-sm font-bold text-slate-600 dark:text-slate-300">
+            <div className="mt-1 text-sm font-bold text-slate-600">
               {stat.label}
             </div>
 
@@ -1189,7 +1138,7 @@ function ListingCard({ listing, onView, compact = false }) {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white">
+            <h3 className="text-lg font-black text-slate-900">
               {listing.crop}
             </h3>
 
@@ -1328,7 +1277,7 @@ function Insights() {
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
         <motion.article
           whileHover={{ y: -4 }}
-          className="min-h-[350px] overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0D1424] p-5 shadow-xs transition-shadow hover:shadow-xl sm:p-6"
+          className="min-h-[350px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-xl hover:shadow-slate-200/60 sm:p-6"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2.5">
@@ -1337,7 +1286,7 @@ function Insights() {
               </span>
 
               <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                <h3 className="text-base font-black text-slate-900">
                   Monthly spend trend
                 </h3>
                 <p className="mt-0.5 text-xs font-medium text-slate-500">
@@ -1504,7 +1453,7 @@ function BuyerPulse({ onOpenListing }) {
       viewport={{ once: true, amount: 0.08 }}
       className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.16fr)_minmax(365px,0.84fr)]"
     >
-      <article className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0D1424] shadow-xs">
+      <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
             <div className="flex items-center gap-2.5">
@@ -1556,7 +1505,7 @@ function BuyerPulse({ onOpenListing }) {
 
                   <div className="min-w-0 flex-1 pb-1">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-sm font-black text-slate-800 dark:text-slate-200">
+                      <p className="text-sm font-black text-slate-800">
                         {event.title}
                       </p>
                       <span className="text-xs font-semibold text-slate-400">
@@ -1680,7 +1629,7 @@ function LivePrices() {
             variants={itemReveal}
             whileHover={{ y: -6, scale: 1.01 }}
             key={crop.name}
-            className="group relative min-h-[204px] overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0D1424] p-5 shadow-xs transition-shadow hover:shadow-xl"
+            className="group relative min-h-[204px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-xl hover:shadow-slate-200/80"
           >
             <div
               className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${crop.color}`}
@@ -1855,7 +1804,7 @@ function MarketPage({ currentListings, searchQuery, onView }) {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0D1424] px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 outline-none"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none"
           >
             <option value="Best Match">Best Match</option>
             <option value="Lowest Price">Lowest Price</option>
@@ -1941,9 +1890,9 @@ function ListingModal({ listing, onClose, onBidSuccess }) {
           exit={{ opacity: 0, y: 35, scale: 0.97 }}
           transition={{ type: "spring", stiffness: 280, damping: 25 }}
           onMouseDown={(event) => event.stopPropagation()}
-          className="max-h-[88vh] w-full overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1424] text-slate-900 dark:text-white shadow-2xl sm:max-w-3xl"
+          className="max-h-[94vh] w-full overflow-y-auto rounded-t-[28px] bg-[#F6F8FC] shadow-2xl sm:max-w-4xl sm:rounded-[28px]"
         >
-          <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0D1424]/95 px-5 py-4 backdrop-blur sm:px-7">
+          <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-2xl">
                 {listing.image}
@@ -1961,7 +1910,7 @@ function ListingModal({ listing, onClose, onBidSuccess }) {
 
             <button
               onClick={onClose}
-              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="rounded-xl border border-slate-200 bg-white p-2 text-slate-600 transition-colors hover:bg-slate-50"
               aria-label="Close listing"
             >
               <X className="h-5 w-5" />
@@ -2042,7 +1991,7 @@ function ListingModal({ listing, onClose, onBidSuccess }) {
                 <div className="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-5 text-xs text-cyan-950">
                   <p className="font-black text-cyan-900 flex items-center gap-1.5">
                     <ShieldCheck className="h-4 w-4 text-cyan-700" />
-                    How FARLX Smart Escrow & Telegram Flow Works:
+                    How SIH Escrow & Telegram Flow Works:
                   </p>
                   <ol className="mt-2 list-decimal list-inside space-y-1.5 text-cyan-900 leading-relaxed font-medium">
                     <li>You submit a bid here with your offer price & quantity.</li>
@@ -2197,7 +2146,7 @@ function UpiSettlementModal({ settlement, onClose }) {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="w-full max-w-md overflow-hidden rounded-[28px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1424] shadow-2xl"
+          className="w-full max-w-md overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl"
         >
           <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 p-6 text-center text-white">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-3xl shadow-inner backdrop-blur">
@@ -2210,7 +2159,7 @@ function UpiSettlementModal({ settlement, onClose }) {
           </div>
 
           <div className="p-6 text-center space-y-4">
-            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
               <p className="text-xs font-bold text-slate-500">Beneficiary Farmer</p>
               <p className="text-base font-black text-slate-900">{settlement.farmerName || "Farmer"}</p>
               <p className="text-xs font-mono text-cyan-700 mt-0.5">{settlement.farmerUpi || "farmer@upi"}</p>
@@ -2346,11 +2295,11 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
       {/* Orders List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-900 dark:text-white">Active Supply Orders ({transactions.length})</h2>
+          <h2 className="text-xl font-black text-slate-900">Active Supply Orders ({transactions.length})</h2>
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Refresh
@@ -2359,11 +2308,11 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
         </div>
 
         {transactions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-[#0D1424] p-12 text-center">
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-3xl">
               📦
             </div>
-            <h3 className="mt-4 text-base font-black text-slate-800 dark:text-white">No Orders in Escrow Yet</h3>
+            <h3 className="mt-4 text-base font-black text-slate-800">No Orders in Escrow Yet</h3>
             <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
               Place a bid on any live crop in the Marketplace. Once the farmer taps [Accept Bid] in Telegram, the order will appear here in Escrow!
             </p>
@@ -2377,7 +2326,7 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
               return (
                 <div
                   key={txn.id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1424] p-5 shadow-xs transition-all hover:shadow-md"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -2399,7 +2348,7 @@ function OrdersEscrowPage({ transactions = [], onRefresh, onOpenListing }) {
                         </span>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                      <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-600 font-medium">
                         <span>👨‍🌾 Farmer: <strong>{txn.farmer_name || "Ramesh"}</strong></span>
                         <span>💳 Farmer UPI: <strong className="font-mono text-cyan-800">{txn.farmer_upi || "farmer@upi"}</strong></span>
                         <span>👤 Buyer: <strong>{txn.buyer_name || "Rajesh Kumar"}</strong></span>
@@ -2653,7 +2602,7 @@ export default function App() {
       <Route
         path="/"
         element={
-          <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#080D1A] text-slate-900 dark:text-slate-100 transition-colors duration-200 lg:flex">
+          <div className="min-h-screen bg-[#F4F7FB] text-slate-900 lg:flex">
             <Sidebar
               active={activeNav}
               setActive={setActiveNav}
@@ -2670,10 +2619,6 @@ export default function App() {
                 onClearNotifications={handleClearNotifications}
                 onOpenOrders={openOrders}
                 onSeedDemo={handleSeedDemo}
-                isDark={isDark}
-                onToggleTheme={handleToggleTheme}
-                lang={lang}
-                onSelectLang={handleSelectLang}
               />
 
               <main className="w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10 xl:py-10">
@@ -2701,7 +2646,7 @@ export default function App() {
       <Route
         path="/market"
         element={
-          <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#080D1A] text-slate-900 dark:text-slate-100 transition-colors duration-200 lg:flex">
+          <div className="min-h-screen bg-[#F4F7FB] text-slate-900 lg:flex">
             <Sidebar
               active={activeNav}
               setActive={setActiveNav}
@@ -2717,10 +2662,6 @@ export default function App() {
                 onClearNotifications={handleClearNotifications}
                 onOpenOrders={openOrders}
                 onSeedDemo={handleSeedDemo}
-                isDark={isDark}
-                onToggleTheme={handleToggleTheme}
-                lang={lang}
-                onSelectLang={handleSelectLang}
               />
               <main className="w-full px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10 xl:py-10">
                 <div className="mx-auto w-full max-w-[1720px]">
